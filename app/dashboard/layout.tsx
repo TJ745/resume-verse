@@ -6,12 +6,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: "var(--rv-paper)", color: "var(--rv-ink)" }}
-    >
+    <div className="min-h-screen bg-rv-paper text-rv-ink">
       <DashboardTopbar />
-      <main style={{ paddingTop: "64px" }}>{children}</main>
+      <main className="pt-16">{children}</main>
     </div>
   );
 }
