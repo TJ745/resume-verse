@@ -1,0 +1,84 @@
+
+
+# Build Order (v1)
+
+| Phase | Feature |
+|-------|---------|
+| 1     | Auth (BetterAuth — register, login, session)  |
+| 2     | Dashboard (resume CRUD, ResumeCard grid)      |
+| 3     | Builder UI (section editors, live preview)    |
+| 4     | Templates (Modern, Classic, Minimal)          |
+| 5     | AI Generation (GPT fills sections)            |
+| 6     | PDF Export (Puppeteer)                        |
+| 7     | Polish + deploy to Vercel                     |
+
+
+
+
+
+
+resumeverse/
+├── app/
+│   ├── (auth)/
+│   │   ├── login/
+│   │   │   └── page.tsx
+│   │   └── register/
+│   │       └── page.tsx
+│   ├── (marketing)/
+│   │   └── page.tsx                  ← Landing page
+│   ├── dashboard/
+│   │   └── page.tsx                  ← User's saved resumes
+│   ├── builder/
+│   │   └── [resumeId]/
+│   │       └── page.tsx              ← Resume editor
+│   ├── api/
+│   │   ├── auth/
+│   │   │   └── [...all]/
+│   │   │       └── route.ts          ← BetterAuth handler
+│   │   ├── ai/
+│   │   │   └── generate/
+│   │   │       └── route.ts          ← GPT generation endpoint
+│   │   └── resume/
+│   │       └── export/
+│   │           └── route.ts          ← PDF export endpoint
+│   ├── layout.tsx
+│   └── globals.css
+│
+├── components/
+│   ├── ui/                           ← Shadcn components
+│   ├── builder/
+│   │   ├── BuilderSidebar.tsx
+│   │   ├── ResumePreview.tsx
+│   │   ├── SectionEditor.tsx
+│   │   └── AIGenerateButton.tsx
+│   ├── dashboard/
+│   │   ├── ResumeCard.tsx
+│   │   └── NewResumeButton.tsx
+│   ├── templates/
+│   │   ├── TemplateModern.tsx
+│   │   ├── TemplateClassic.tsx
+│   │   └── TemplateMinimal.tsx
+│   └── shared/
+│       ├── Navbar.tsx
+│       └── Footer.tsx
+│
+├── lib/
+│   ├── prisma.ts                     ← Prisma singleton
+│   ├── auth.ts                       ← BetterAuth config
+│   ├── openai.ts                     ← OpenAI client singleton
+│   └── pdf.ts                        ← Puppeteer PDF helper
+│
+├── actions/
+│   ├── resume.actions.ts             ← CRUD server actions
+│   └── ai.actions.ts                 ← AI generation actions
+│
+├── prisma/
+│   ├── schema.prisma
+│   └── seed.ts
+│
+├── types/
+│   └── resume.ts                     ← Shared TypeScript types
+│
+├── .env.local
+├── next.config.ts
+└── package.json
