@@ -6,7 +6,47 @@
 //   | "education"
 //   | "skills"
 //   | "projects"
-//   | "certifications";
+//   | "certifications"
+//   | "languages"
+//   | "awards"
+//   | "volunteer";
+
+// // ── Personal info (stored on Resume model) ─────────────────
+
+// export interface PersonalInfo {
+//   fullName: string;
+//   jobTitle: string;
+//   email: string;
+//   phone: string;
+//   address: string;
+//   linkedin: string;
+//   github: string;
+//   website: string;
+//   photoUrl: string;
+//   maritalStatus: string;
+//   // visibility toggles for optional fields
+//   showPhoto: boolean;
+//   showMaritalStatus: boolean;
+//   showWebsite: boolean;
+//   showAddress: boolean;
+// }
+
+// export const DEFAULT_PERSONAL_INFO: PersonalInfo = {
+//   fullName: "",
+//   jobTitle: "",
+//   email: "",
+//   phone: "",
+//   address: "",
+//   linkedin: "",
+//   github: "",
+//   website: "",
+//   photoUrl: "",
+//   maritalStatus: "",
+//   showPhoto: false,
+//   showMaritalStatus: false,
+//   showWebsite: false,
+//   showAddress: true,
+// };
 
 // // ── Per-section content shapes ────────────────────────────
 
@@ -55,15 +95,42 @@
 //   url?: string;
 // }
 
+// export interface LanguageItem {
+//   id: string;
+//   language: string;
+//   proficiency: string;
+// }
+
+// export interface AwardItem {
+//   id: string;
+//   title: string;
+//   issuer: string;
+//   date: string;
+//   description: string;
+// }
+
+// export interface VolunteerItem {
+//   id: string;
+//   organization: string;
+//   role: string;
+//   startDate: string;
+//   endDate: string;
+//   current: boolean;
+//   description: string;
+// }
+
 // export type SectionContent =
 //   | SummaryContent
 //   | ExperienceItem[]
 //   | EducationItem[]
 //   | SkillsContent
 //   | ProjectItem[]
-//   | CertificationItem[];
+//   | CertificationItem[]
+//   | LanguageItem[]
+//   | AwardItem[]
+//   | VolunteerItem[];
 
-// // ── Resume section row (matches Prisma model) ─────────────
+// // ── Resume section row ────────────────────────────────────
 
 // export interface ResumeSection {
 //   id: string;
@@ -74,7 +141,7 @@
 //   order: number;
 // }
 
-// // ── Full resume shape used in the builder ─────────────────
+// // ── Full resume shape ─────────────────────────────────────
 
 // export interface ResumeData {
 //   id: string;
@@ -82,7 +149,19 @@
 //   template: string;
 //   colorScheme: string;
 //   jobTitle: string | null;
+//   personalInfo: PersonalInfo | null;
 //   sections: ResumeSection[];
+// }
+
+// // ── Parsed upload shape (from AI parsing) ────────────────
+
+// export interface ParsedResumeUpload {
+//   personalInfo: PersonalInfo | null;
+//   sections: Array<{
+//     type: SectionType;
+//     title: string;
+//     content: SectionContent;
+//   }>;
 // }
 
 // ── Section type union ────────────────────────────────────
@@ -109,11 +188,9 @@ export interface PersonalInfo {
   linkedin: string;
   github: string;
   website: string;
-  photoUrl: string;
-  maritalStatus: string;
-  // visibility toggles for optional fields
+  photoUrl: string; // base64 data URL or empty string
+  // visibility toggles
   showPhoto: boolean;
-  showMaritalStatus: boolean;
   showWebsite: boolean;
   showAddress: boolean;
 }
@@ -128,9 +205,7 @@ export const DEFAULT_PERSONAL_INFO: PersonalInfo = {
   github: "",
   website: "",
   photoUrl: "",
-  maritalStatus: "",
   showPhoto: false,
-  showMaritalStatus: false,
   showWebsite: false,
   showAddress: true,
 };
@@ -238,4 +313,15 @@ export interface ResumeData {
   jobTitle: string | null;
   personalInfo: PersonalInfo | null;
   sections: ResumeSection[];
+}
+
+// ── Parsed upload shape (from AI parsing) ────────────────
+
+export interface ParsedResumeUpload {
+  personalInfo: PersonalInfo | null;
+  sections: Array<{
+    type: SectionType;
+    title: string;
+    content: SectionContent;
+  }>;
 }
