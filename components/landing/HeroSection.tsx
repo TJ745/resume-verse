@@ -92,13 +92,7 @@ function ResumeMock() {
 
 export default function HeroSection() {
   return (
-    <section
-      className="grid min-h-screen"
-      style={{
-        gridTemplateColumns: "1fr 1fr",
-        paddingTop: "5rem",
-      }}
-    >
+    <section className="grid min-h-screen grid-cols-2 pt-20">
       {/* Left */}
       <div
         className="flex flex-col justify-center"

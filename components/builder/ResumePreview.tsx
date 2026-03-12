@@ -11,6 +11,9 @@
 //   SkillsContent,
 //   ProjectItem,
 //   CertificationItem,
+//   LanguageItem,
+//   AwardItem,
+//   VolunteerItem,
 // } from "@/types/resume";
 // import Image from "next/image";
 
@@ -217,7 +220,14 @@
 //       );
 //     }
 //     case "skills": {
-//       const c = section.content as SkillsContent;
+//       const raw = section.content;
+//       const c: SkillsContent =
+//         raw &&
+//         typeof raw === "object" &&
+//         !Array.isArray(raw) &&
+//         "categories" in raw
+//           ? (raw as SkillsContent)
+//           : { categories: [] };
 //       if (!c.categories.length) return null;
 //       return (
 //         <SectionBlock>
@@ -315,6 +325,128 @@
 //                 <span style={{ fontSize: fs.label, color: muted }}>
 //                   {cert.date}
 //                 </span>
+//               )}
+//             </div>
+//           ))}
+//         </SectionBlock>
+//       );
+//     }
+//     case "languages": {
+//       const items = section.content as LanguageItem[];
+//       if (!Array.isArray(items) || !items.length) return null;
+//       return (
+//         <SectionBlock>
+//           <div style={headingStyle}>{section.title}</div>
+//           <div
+//             style={{ display: "flex", flexWrap: "wrap", gap: "0.15rem 1rem" }}
+//           >
+//             {items.map((lang) => (
+//               <span key={lang.id} style={{ fontSize: fs.body, color: body }}>
+//                 <span style={{ fontWeight: 600, color: ink }}>
+//                   {lang.language}
+//                 </span>
+//                 {lang.proficiency && (
+//                   <span style={{ color: muted }}>
+//                     {" · "}
+//                     {lang.proficiency}
+//                   </span>
+//                 )}
+//               </span>
+//             ))}
+//           </div>
+//         </SectionBlock>
+//       );
+//     }
+//     case "awards": {
+//       const items = section.content as AwardItem[];
+//       if (!Array.isArray(items) || !items.length) return null;
+//       return (
+//         <SectionBlock>
+//           <div style={headingStyle}>{section.title}</div>
+//           {items.map((award) => (
+//             <div key={award.id} style={{ marginBottom: "0.55rem" }}>
+//               <div
+//                 style={{
+//                   display: "flex",
+//                   justifyContent: "space-between",
+//                   alignItems: "baseline",
+//                 }}
+//               >
+//                 <span
+//                   style={{ fontSize: fs.title, fontWeight: 600, color: ink }}
+//                 >
+//                   {award.title}
+//                 </span>
+//                 {award.date && (
+//                   <span style={{ fontSize: fs.label, color: muted }}>
+//                     {award.date}
+//                   </span>
+//                 )}
+//               </div>
+//               {award.issuer && (
+//                 <div style={{ fontSize: fs.body, color: muted }}>
+//                   {award.issuer}
+//                 </div>
+//               )}
+//               {award.description && (
+//                 <p
+//                   style={{
+//                     fontSize: fs.body,
+//                     lineHeight: 1.55,
+//                     color: body,
+//                     marginTop: "0.1rem",
+//                   }}
+//                 >
+//                   {award.description}
+//                 </p>
+//               )}
+//             </div>
+//           ))}
+//         </SectionBlock>
+//       );
+//     }
+//     case "volunteer": {
+//       const items = section.content as VolunteerItem[];
+//       if (!Array.isArray(items) || !items.length) return null;
+//       return (
+//         <SectionBlock>
+//           <div style={headingStyle}>{section.title}</div>
+//           {items.map((vol) => (
+//             <div key={vol.id} style={{ marginBottom: "0.7rem" }}>
+//               <div
+//                 style={{
+//                   display: "flex",
+//                   justifyContent: "space-between",
+//                   alignItems: "baseline",
+//                 }}
+//               >
+//                 <span
+//                   style={{ fontSize: fs.title, fontWeight: 600, color: ink }}
+//                 >
+//                   {vol.role}
+//                   {vol.organization ? ` @ ${vol.organization}` : ""}
+//                 </span>
+//                 <span style={{ fontSize: fs.label, color: muted }}>
+//                   {vol.startDate}
+//                   {vol.startDate &&
+//                     (vol.current
+//                       ? " – Present"
+//                       : vol.endDate
+//                         ? ` – ${vol.endDate}`
+//                         : "")}
+//                 </span>
+//               </div>
+//               {vol.description && (
+//                 <p
+//                   style={{
+//                     fontSize: fs.body,
+//                     lineHeight: 1.55,
+//                     color: body,
+//                     marginTop: "0.1rem",
+//                   }}
+//                 >
+//                   {vol.description}
+//                 </p>
 //               )}
 //             </div>
 //           ))}
@@ -1042,6 +1174,8 @@
 
 "use client";
 
+import { useState, useRef, useCallback, useEffect } from "react";
+import { reorderSections } from "@/actions/builder.actions";
 import { COLOR_SCHEMES } from "@/lib/resume-constants";
 import type {
   ResumeData,
@@ -1054,7 +1188,11 @@ import type {
   ProjectItem,
   CertificationItem,
   LanguageItem,
+  AwardItem,
+  VolunteerItem,
 } from "@/types/resume";
+
+// ── Helpers ───────────────────────────────────────────────
 
 function getAccent(schemeId?: string): string {
   return COLOR_SCHEMES.find((s) => s.id === schemeId)?.accent ?? "#c84b2f";
@@ -1066,62 +1204,292 @@ function getJobTitle(resume: ResumeData): string {
   return resume.personalInfo?.jobTitle || resume.jobTitle || "";
 }
 
+// ── Public props ──────────────────────────────────────────
+
 interface PreviewProps {
   resume: ResumeData;
   sections: ResumeSection[];
+  /** When provided, enables drag-to-reorder on every section */
+  onSectionsChange?: (s: ResumeSection[]) => void;
 }
 
-export default function ResumePreview({ resume, sections }: PreviewProps) {
+// ── Drag state (shared via context) ──────────────────────
+
+interface DragCtx {
+  dragId: string | null;
+  overId: string | null;
+  accent: string;
+  onDragStart: (id: string, e: React.DragEvent) => void;
+  onDragOver: (id: string, e: React.DragEvent) => void;
+  onDrop: (id: string) => void;
+  onDragEnd: () => void;
+}
+
+import { createContext, useContext } from "react";
+import Image from "next/image";
+const DragContext = createContext<DragCtx | null>(null);
+
+// ── DraggableSection ─────────────────────────────────────
+// Wraps any rendered section with a drag handle.
+// Works in single-column AND sidebar/2-column templates
+// because it's applied per-section, not as an overlay.
+
+function DraggableSection({
+  id,
+  children,
+  inverted = false, // true for dark sidebar sections (Creative)
+}: {
+  id: string;
+  children: React.ReactNode;
+  inverted?: boolean;
+}) {
+  const ctx = useContext(DragContext);
+  const [hover, setHover] = useState(false);
+
+  // No drag context = pure preview mode (e.g. print page)
+  if (!ctx) return <>{children}</>;
+
+  const isOver = ctx.overId === id;
+
+  return (
+    <div
+      draggable
+      onDragStart={(e) => ctx.onDragStart(id, e)}
+      onDragOver={(e) => ctx.onDragOver(id, e)}
+      onDrop={() => ctx.onDrop(id)}
+      onDragEnd={ctx.onDragEnd}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        position: "relative",
+        cursor: "grab",
+        borderRadius: 2,
+        outline: isOver
+          ? `2px solid ${ctx.accent}`
+          : hover
+            ? `1px dashed ${inverted ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.12)"}`
+            : "2px solid transparent",
+        outlineOffset: 1,
+        transition: "outline 0.1s",
+        background: isOver
+          ? inverted
+            ? "rgba(255,255,255,0.08)"
+            : "rgba(200,75,47,0.04)"
+          : "transparent",
+      }}
+    >
+      {children}
+
+      {/* Handle pill — shows on hover */}
+      {hover && (
+        <div
+          style={{
+            position: "absolute",
+            top: 2,
+            right: 2,
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            background: inverted
+              ? "rgba(0,0,0,0.55)"
+              : "rgba(253,252,250,0.97)",
+            border: `1px solid ${inverted ? "rgba(255,255,255,0.2)" : "#e0d9ce"}`,
+            borderRadius: 3,
+            padding: "2px 6px 2px 4px",
+            pointerEvents: "none",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+            zIndex: 10,
+          }}
+        >
+          <DragIcon inverted={inverted} />
+          <span
+            style={{
+              fontSize: "0.55rem",
+              fontWeight: 600,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+              color: inverted ? "rgba(255,255,255,0.8)" : "#6b6560",
+              whiteSpace: "nowrap",
+            }}
+          >
+            drag to reorder
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DragIcon({ inverted = false }: { inverted?: boolean }) {
+  const fill = inverted ? "rgba(255,255,255,0.7)" : "#9a9288";
+  return (
+    <svg
+      viewBox="0 0 10 14"
+      style={{ width: 8, height: 11, fill, flexShrink: 0 }}
+    >
+      <circle cx="2.5" cy="2" r="1.1" />
+      <circle cx="2.5" cy="7" r="1.1" />
+      <circle cx="2.5" cy="12" r="1.1" />
+      <circle cx="7.5" cy="2" r="1.1" />
+      <circle cx="7.5" cy="7" r="1.1" />
+      <circle cx="7.5" cy="12" r="1.1" />
+    </svg>
+  );
+}
+
+// ── Main export ───────────────────────────────────────────
+
+export default function ResumePreview({
+  resume,
+  sections,
+  onSectionsChange,
+}: PreviewProps) {
   const sorted = [...sections].sort((a, b) => a.order - b.order);
   const accent = getAccent(resume.colorScheme);
 
-  switch (resume.template) {
-    case "classic":
-      return (
-        <ClassicTemplate resume={resume} sections={sorted} accent={accent} />
-      );
-    case "minimal":
-      return (
-        <MinimalTemplate resume={resume} sections={sorted} accent={accent} />
-      );
-    case "executive":
-      return (
-        <ExecutiveTemplate resume={resume} sections={sorted} accent={accent} />
-      );
-    case "compact":
-      return (
-        <CompactTemplate resume={resume} sections={sorted} accent={accent} />
-      );
-    case "creative":
-      return (
-        <CreativeTemplate resume={resume} sections={sorted} accent={accent} />
-      );
-    case "elegant":
-      return (
-        <ElegantTemplate resume={resume} sections={sorted} accent={accent} />
-      );
-    case "technical":
-      return (
-        <TechnicalTemplate resume={resume} sections={sorted} accent={accent} />
-      );
-    case "chronological":
-      return (
-        <ChronologicalTemplate
-          resume={resume}
-          sections={sorted}
-          accent={accent}
-        />
-      );
-    case "bold":
-      return <BoldTemplate resume={resume} sections={sorted} accent={accent} />;
-    default:
-      return (
-        <ModernTemplate resume={resume} sections={sorted} accent={accent} />
-      );
-  }
+  // Drag state — only active when onSectionsChange is provided
+  const dragId = useRef<string | null>(null);
+  const sortedRef = useRef<ResumeSection[]>(sorted);
+  sortedRef.current = sorted;
+
+  const [overId, setOverId] = useState<string | null>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    },
+    [],
+  );
+
+  const handleDragStart = useCallback((id: string, e: React.DragEvent) => {
+    dragId.current = id;
+    e.dataTransfer.effectAllowed = "move";
+    const ghost = document.createElement("div");
+    ghost.style.cssText =
+      "position:fixed;top:-999px;opacity:0;width:1px;height:1px";
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 0, 0);
+    setTimeout(() => document.body.removeChild(ghost), 0);
+  }, []);
+
+  const handleDragOver = useCallback((id: string, e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (id !== dragId.current) setOverId(id);
+  }, []);
+
+  const handleDrop = useCallback(
+    (targetId: string) => {
+      const current = sortedRef.current;
+      if (!dragId.current || dragId.current === targetId) {
+        dragId.current = null;
+        setOverId(null);
+        return;
+      }
+      const fromIdx = current.findIndex((s) => s.id === dragId.current);
+      const toIdx = current.findIndex((s) => s.id === targetId);
+      if (fromIdx === -1 || toIdx === -1) return;
+
+      const reordered = [...current];
+      const [moved] = reordered.splice(fromIdx, 1);
+      reordered.splice(toIdx, 0, moved);
+      const updated = reordered.map((s, i) => ({ ...s, order: i }));
+
+      onSectionsChange?.(updated);
+
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => {
+        reorderSections(
+          resume.id,
+          updated.map((s) => s.id),
+        ).catch(console.error);
+      }, 600);
+
+      dragId.current = null;
+      setOverId(null);
+    },
+    [resume.id, onSectionsChange],
+  );
+
+  const handleDragEnd = useCallback(() => {
+    dragId.current = null;
+    setOverId(null);
+  }, []);
+
+  const dragCtx: DragCtx | null = onSectionsChange
+    ? {
+        dragId: dragId.current,
+        overId,
+        accent,
+        onDragStart: handleDragStart,
+        onDragOver: handleDragOver,
+        onDrop: handleDrop,
+        onDragEnd: handleDragEnd,
+      }
+    : null;
+
+  const content = (() => {
+    switch (resume.template) {
+      case "classic":
+        return (
+          <ClassicTemplate resume={resume} sections={sorted} accent={accent} />
+        );
+      case "minimal":
+        return (
+          <MinimalTemplate resume={resume} sections={sorted} accent={accent} />
+        );
+      case "executive":
+        return (
+          <ExecutiveTemplate
+            resume={resume}
+            sections={sorted}
+            accent={accent}
+          />
+        );
+      case "compact":
+        return (
+          <CompactTemplate resume={resume} sections={sorted} accent={accent} />
+        );
+      case "creative":
+        return (
+          <CreativeTemplate resume={resume} sections={sorted} accent={accent} />
+        );
+      case "elegant":
+        return (
+          <ElegantTemplate resume={resume} sections={sorted} accent={accent} />
+        );
+      case "technical":
+        return (
+          <TechnicalTemplate
+            resume={resume}
+            sections={sorted}
+            accent={accent}
+          />
+        );
+      case "chronological":
+        return (
+          <ChronologicalTemplate
+            resume={resume}
+            sections={sorted}
+            accent={accent}
+          />
+        );
+      case "bold":
+        return (
+          <BoldTemplate resume={resume} sections={sorted} accent={accent} />
+        );
+      default:
+        return (
+          <ModernTemplate resume={resume} sections={sorted} accent={accent} />
+        );
+    }
+  })();
+
+  return <DragContext.Provider value={dragCtx}>{content}</DragContext.Provider>;
 }
 
-// ── Shared types & helpers ────────────────────────────────
+// ── Shared ────────────────────────────────────────────────
 
 interface TplProps {
   resume: ResumeData;
@@ -1131,6 +1499,24 @@ interface TplProps {
 
 function SectionBlock({ children }: { children: React.ReactNode }) {
   return <div style={{ marginBottom: "1.1rem" }}>{children}</div>;
+}
+
+// Wraps a rendered section (or null) in DraggableSection
+function DS({
+  section,
+  children,
+  inverted,
+}: {
+  section: ResumeSection;
+  children: React.ReactNode | null;
+  inverted?: boolean;
+}) {
+  if (!children) return null;
+  return (
+    <DraggableSection id={section.id} inverted={inverted}>
+      {children}
+    </DraggableSection>
+  );
 }
 
 function renderSection(
@@ -1146,7 +1532,7 @@ function renderSection(
   switch (section.type) {
     case "summary": {
       const c = section.content as SummaryContent;
-      if (!c.text) return null;
+      if (!c?.text) return null;
       return (
         <SectionBlock>
           <div style={headingStyle}>{section.title}</div>
@@ -1158,7 +1544,7 @@ function renderSection(
     }
     case "experience": {
       const items = section.content as ExperienceItem[];
-      if (!items.length) return null;
+      if (!Array.isArray(items) || !items.length) return null;
       return (
         <SectionBlock>
           <div style={headingStyle}>{section.title}</div>
@@ -1196,7 +1582,7 @@ function renderSection(
                 {exp.company}
                 {exp.location ? ` · ${exp.location}` : ""}
               </div>
-              {exp.bullets.filter(Boolean).map((b, i) => (
+              {(exp.bullets ?? []).filter(Boolean).map((b, i) => (
                 <div
                   key={i}
                   style={{ display: "flex", gap: 5, marginBottom: "0.1rem" }}
@@ -1225,7 +1611,7 @@ function renderSection(
     }
     case "education": {
       const items = section.content as EducationItem[];
-      if (!items.length) return null;
+      if (!Array.isArray(items) || !items.length) return null;
       return (
         <SectionBlock>
           <div style={headingStyle}>{section.title}</div>
@@ -1290,7 +1676,7 @@ function renderSection(
     }
     case "projects": {
       const items = section.content as ProjectItem[];
-      if (!items.length) return null;
+      if (!Array.isArray(items) || !items.length) return null;
       return (
         <SectionBlock>
           <div style={headingStyle}>{section.title}</div>
@@ -1333,7 +1719,7 @@ function renderSection(
     }
     case "certifications": {
       const items = section.content as CertificationItem[];
-      if (!items.length) return null;
+      if (!Array.isArray(items) || !items.length) return null;
       return (
         <SectionBlock>
           <div style={headingStyle}>{section.title}</div>
@@ -1396,17 +1782,112 @@ function renderSection(
         </SectionBlock>
       );
     }
+    case "awards": {
+      const items = section.content as AwardItem[];
+      if (!Array.isArray(items) || !items.length) return null;
+      return (
+        <SectionBlock>
+          <div style={headingStyle}>{section.title}</div>
+          {items.map((award) => (
+            <div key={award.id} style={{ marginBottom: "0.55rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                }}
+              >
+                <span
+                  style={{ fontSize: fs.title, fontWeight: 600, color: ink }}
+                >
+                  {award.title}
+                </span>
+                {award.date && (
+                  <span style={{ fontSize: fs.label, color: muted }}>
+                    {award.date}
+                  </span>
+                )}
+              </div>
+              {award.issuer && (
+                <div style={{ fontSize: fs.body, color: muted }}>
+                  {award.issuer}
+                </div>
+              )}
+              {award.description && (
+                <p
+                  style={{
+                    fontSize: fs.body,
+                    lineHeight: 1.55,
+                    color: body,
+                    marginTop: "0.1rem",
+                  }}
+                >
+                  {award.description}
+                </p>
+              )}
+            </div>
+          ))}
+        </SectionBlock>
+      );
+    }
+    case "volunteer": {
+      const items = section.content as VolunteerItem[];
+      if (!Array.isArray(items) || !items.length) return null;
+      return (
+        <SectionBlock>
+          <div style={headingStyle}>{section.title}</div>
+          {items.map((vol) => (
+            <div key={vol.id} style={{ marginBottom: "0.7rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                }}
+              >
+                <span
+                  style={{ fontSize: fs.title, fontWeight: 600, color: ink }}
+                >
+                  {vol.role}
+                  {vol.organization ? ` @ ${vol.organization}` : ""}
+                </span>
+                <span style={{ fontSize: fs.label, color: muted }}>
+                  {vol.startDate}
+                  {vol.startDate &&
+                    (vol.current
+                      ? " – Present"
+                      : vol.endDate
+                        ? ` – ${vol.endDate}`
+                        : "")}
+                </span>
+              </div>
+              {vol.description && (
+                <p
+                  style={{
+                    fontSize: fs.body,
+                    lineHeight: 1.55,
+                    color: body,
+                    marginTop: "0.1rem",
+                  }}
+                >
+                  {vol.description}
+                </p>
+              )}
+            </div>
+          ))}
+        </SectionBlock>
+      );
+    }
     default:
       return null;
   }
 }
 
-// ── Contact line with icons ──────────────────────────────
+// ── Contact line ──────────────────────────────────────────
+
 function ContactLine({ info }: { info: PersonalInfo | null }) {
   if (!info) return null;
-
   const items: { icon: React.ReactNode; text: string }[] = [];
-
   if (info.email) items.push({ icon: <EmailIcon />, text: info.email });
   if (info.phone) items.push({ icon: <PhoneIcon />, text: info.phone });
   if (info.showAddress && info.address)
@@ -1416,9 +1897,7 @@ function ContactLine({ info }: { info: PersonalInfo | null }) {
   if (info.github) items.push({ icon: <GitHubIcon />, text: info.github });
   if (info.showWebsite && info.website)
     items.push({ icon: <WebsiteIcon />, text: info.website });
-
   if (!items.length) return null;
-
   return (
     <div
       style={{
@@ -1448,7 +1927,7 @@ function ContactLine({ info }: { info: PersonalInfo | null }) {
   );
 }
 
-// ── Contact icons (inline SVG, 8×8 px) ───────────────────
+// ── Icons ─────────────────────────────────────────────────
 
 const iconStyle: React.CSSProperties = {
   width: 7,
@@ -1459,7 +1938,6 @@ const iconStyle: React.CSSProperties = {
   flexShrink: 0,
   display: "inline-block",
 };
-
 function EmailIcon() {
   return (
     <svg viewBox="0 0 16 16" style={iconStyle}>
@@ -1468,7 +1946,6 @@ function EmailIcon() {
     </svg>
   );
 }
-
 function PhoneIcon() {
   return (
     <svg viewBox="0 0 16 16" style={iconStyle}>
@@ -1476,7 +1953,6 @@ function PhoneIcon() {
     </svg>
   );
 }
-
 function AddressIcon() {
   return (
     <svg viewBox="0 0 16 16" style={iconStyle}>
@@ -1485,7 +1961,6 @@ function AddressIcon() {
     </svg>
   );
 }
-
 function LinkedInIcon() {
   return (
     <svg
@@ -1496,7 +1971,6 @@ function LinkedInIcon() {
     </svg>
   );
 }
-
 function GitHubIcon() {
   return (
     <svg
@@ -1507,7 +1981,6 @@ function GitHubIcon() {
     </svg>
   );
 }
-
 function WebsiteIcon() {
   return (
     <svg viewBox="0 0 16 16" style={iconStyle}>
@@ -1517,7 +1990,9 @@ function WebsiteIcon() {
   );
 }
 
-const WRAP = {
+// ── Base wrapper style ────────────────────────────────────
+
+const WRAP: React.CSSProperties = {
   fontFamily: "'DM Sans', sans-serif",
   background: "#fdfcfa",
   padding: "2rem",
@@ -1525,9 +2000,13 @@ const WRAP = {
   fontSize: "11px",
 };
 
-// ── 1. Modern ─────────────────────────────────────────────
+// ── Templates ─────────────────────────────────────────────
+// Each section is wrapped in <DS section={s}>…</DS>
+// DS = DraggableSection shorthand — handles both drag mode and pure preview
+
+// 1. Modern
 function ModernTemplate({ resume, sections, accent }: TplProps) {
-  const heading: React.CSSProperties = {
+  const h: React.CSSProperties = {
     fontSize: "0.6rem",
     fontWeight: 700,
     letterSpacing: "0.12em",
@@ -1544,7 +2023,7 @@ function ModernTemplate({ resume, sections, accent }: TplProps) {
       />
       <div style={{ marginBottom: "1.25rem" }}>
         {resume.personalInfo?.showPhoto && resume.personalInfo?.photoUrl && (
-          <img
+          <Image
             src={resume.personalInfo.photoUrl}
             alt="Profile"
             style={{
@@ -1555,6 +2034,8 @@ function ModernTemplate({ resume, sections, accent }: TplProps) {
               float: "right",
               marginLeft: 12,
             }}
+            width={52}
+            height={52}
           />
         )}
         <h1
@@ -1567,9 +2048,9 @@ function ModernTemplate({ resume, sections, accent }: TplProps) {
             marginBottom: "0.2rem",
           }}
         >
-          {resume.personalInfo?.fullName || "Your Name"}
+          {getName(resume)}
         </h1>
-        {(resume.personalInfo?.jobTitle || resume.jobTitle) && (
+        {getJobTitle(resume) && (
           <p
             style={{
               fontSize: "0.65rem",
@@ -1578,21 +2059,23 @@ function ModernTemplate({ resume, sections, accent }: TplProps) {
               color: accent,
             }}
           >
-            {resume.personalInfo?.jobTitle || resume.jobTitle}
+            {getJobTitle(resume)}
           </p>
         )}
         <ContactLine info={resume.personalInfo} />
       </div>
       {sections.map((s) => (
-        <div key={s.id}>{renderSection(s, heading, accent)}</div>
+        <DS key={s.id} section={s}>
+          {renderSection(s, h, accent)}
+        </DS>
       ))}
     </div>
   );
 }
 
-// ── 2. Classic ────────────────────────────────────────────
+// 2. Classic
 function ClassicTemplate({ resume, sections, accent }: TplProps) {
-  const heading: React.CSSProperties = {
+  const h: React.CSSProperties = {
     fontSize: "0.65rem",
     fontWeight: 700,
     letterSpacing: "0.1em",
@@ -1621,9 +2104,9 @@ function ClassicTemplate({ resume, sections, accent }: TplProps) {
             marginBottom: "0.2rem",
           }}
         >
-          {resume.personalInfo?.fullName || "Your Name"}
+          {getName(resume)}
         </h1>
-        {(resume.personalInfo?.jobTitle || resume.jobTitle) && (
+        {getJobTitle(resume) && (
           <p
             style={{
               fontSize: "0.67rem",
@@ -1631,21 +2114,23 @@ function ClassicTemplate({ resume, sections, accent }: TplProps) {
               letterSpacing: "0.06em",
             }}
           >
-            {resume.personalInfo?.jobTitle || resume.jobTitle}
+            {getJobTitle(resume)}
           </p>
         )}
         <ContactLine info={resume.personalInfo} />
       </div>
       {sections.map((s) => (
-        <div key={s.id}>{renderSection(s, heading, accent)}</div>
+        <DS key={s.id} section={s}>
+          {renderSection(s, h, accent)}
+        </DS>
       ))}
     </div>
   );
 }
 
-// ── 3. Minimal ────────────────────────────────────────────
+// 3. Minimal (2-column — left: skills/certs/edu, right: rest)
 function MinimalTemplate({ resume, sections, accent }: TplProps) {
-  const heading: React.CSSProperties = {
+  const h: React.CSSProperties = {
     fontSize: "0.6rem",
     fontWeight: 700,
     letterSpacing: "0.12em",
@@ -1653,12 +2138,9 @@ function MinimalTemplate({ resume, sections, accent }: TplProps) {
     color: "#8a8478",
     marginBottom: "0.6rem",
   };
-  const left = sections.filter((s) =>
-    ["skills", "certifications", "education"].includes(s.type),
-  );
-  const right = sections.filter(
-    (s) => !["skills", "certifications", "education"].includes(s.type),
-  );
+  const LEFT_TYPES = ["skills", "certifications", "education"];
+  const left = sections.filter((s) => LEFT_TYPES.includes(s.type));
+  const right = sections.filter((s) => !LEFT_TYPES.includes(s.type));
   return (
     <div style={{ ...WRAP, padding: "1.75rem" }}>
       <div style={{ marginBottom: "1.25rem" }}>
@@ -1691,12 +2173,16 @@ function MinimalTemplate({ resume, sections, accent }: TplProps) {
       >
         <div>
           {left.map((s) => (
-            <div key={s.id}>{renderSection(s, heading, accent)}</div>
+            <DS key={s.id} section={s}>
+              {renderSection(s, h, accent)}
+            </DS>
           ))}
         </div>
         <div>
           {right.map((s) => (
-            <div key={s.id}>{renderSection(s, heading, accent)}</div>
+            <DS key={s.id} section={s}>
+              {renderSection(s, h, accent)}
+            </DS>
           ))}
         </div>
       </div>
@@ -1704,9 +2190,9 @@ function MinimalTemplate({ resume, sections, accent }: TplProps) {
   );
 }
 
-// ── 4. Executive ──────────────────────────────────────────
+// 4. Executive
 function ExecutiveTemplate({ resume, sections, accent }: TplProps) {
-  const heading: React.CSSProperties = {
+  const h: React.CSSProperties = {
     fontSize: "0.6rem",
     fontWeight: 700,
     letterSpacing: "0.15em",
@@ -1751,15 +2237,17 @@ function ExecutiveTemplate({ resume, sections, accent }: TplProps) {
         )}
       </div>
       {sections.map((s) => (
-        <div key={s.id}>{renderSection(s, heading, accent)}</div>
+        <DS key={s.id} section={s}>
+          {renderSection(s, h, accent)}
+        </DS>
       ))}
     </div>
   );
 }
 
-// ── 5. Compact ────────────────────────────────────────────
+// 5. Compact
 function CompactTemplate({ resume, sections, accent }: TplProps) {
-  const heading: React.CSSProperties = {
+  const h: React.CSSProperties = {
     fontSize: "0.58rem",
     fontWeight: 700,
     letterSpacing: "0.1em",
@@ -1778,7 +2266,7 @@ function CompactTemplate({ resume, sections, accent }: TplProps) {
           alignItems: "flex-end",
           marginBottom: "1rem",
           paddingBottom: "0.6rem",
-          borderBottom: `1px solid #d9d4c7`,
+          borderBottom: "1px solid #d9d4c7",
         }}
       >
         <h1
@@ -1798,15 +2286,17 @@ function CompactTemplate({ resume, sections, accent }: TplProps) {
         )}
       </div>
       {sections.map((s) => (
-        <div key={s.id}>{renderSection(s, heading, accent)}</div>
+        <DS key={s.id} section={s}>
+          {renderSection(s, h, accent)}
+        </DS>
       ))}
     </div>
   );
 }
 
-// ── 6. Creative ───────────────────────────────────────────
+// 6. Creative (2-column sidebar — left sidebar is dark/inverted)
 function CreativeTemplate({ resume, sections, accent }: TplProps) {
-  const heading: React.CSSProperties = {
+  const hLeft: React.CSSProperties = {
     fontSize: "0.6rem",
     fontWeight: 700,
     letterSpacing: "0.12em",
@@ -1814,7 +2304,7 @@ function CreativeTemplate({ resume, sections, accent }: TplProps) {
     color: "#ffffff",
     marginBottom: "0.6rem",
   };
-  const headingRight: React.CSSProperties = {
+  const hRight: React.CSSProperties = {
     fontSize: "0.6rem",
     fontWeight: 700,
     letterSpacing: "0.12em",
@@ -1822,12 +2312,9 @@ function CreativeTemplate({ resume, sections, accent }: TplProps) {
     color: accent,
     marginBottom: "0.6rem",
   };
-  const left = sections.filter((s) =>
-    ["skills", "certifications", "education"].includes(s.type),
-  );
-  const right = sections.filter(
-    (s) => !["skills", "certifications", "education"].includes(s.type),
-  );
+  const LEFT_TYPES = ["skills", "certifications", "education"];
+  const left = sections.filter((s) => LEFT_TYPES.includes(s.type));
+  const right = sections.filter((s) => !LEFT_TYPES.includes(s.type));
   return (
     <div
       style={{
@@ -1837,7 +2324,6 @@ function CreativeTemplate({ resume, sections, accent }: TplProps) {
         fontSize: "11px",
       }}
     >
-      {/* Sidebar */}
       <div
         style={{
           width: "38%",
@@ -1871,29 +2357,32 @@ function CreativeTemplate({ resume, sections, accent }: TplProps) {
           )}
         </div>
         {left.map((s) => (
-          <div key={s.id} style={{ color: "#fff" }}>
-            {renderSection(s, heading, "#ffffff")}
-          </div>
+          <DS key={s.id} section={s} inverted>
+            <div style={{ color: "#fff" }}>
+              {renderSection(s, hLeft, "#ffffff")}
+            </div>
+          </DS>
         ))}
       </div>
-      {/* Main */}
       <div style={{ flex: 1, padding: "2rem 1.5rem", background: "#fdfcfa" }}>
         {right.map((s) => (
-          <div key={s.id}>{renderSection(s, headingRight, accent)}</div>
+          <DS key={s.id} section={s}>
+            {renderSection(s, hRight, accent)}
+          </DS>
         ))}
       </div>
     </div>
   );
 }
 
-// ── 7. Elegant ────────────────────────────────────────────
+// 7. Elegant
 function ElegantTemplate({ resume, sections, accent }: TplProps) {
-  const heading: React.CSSProperties = {
+  const h: React.CSSProperties = {
     fontFamily: "'Instrument Serif', serif",
     fontSize: "0.85rem",
     fontStyle: "italic",
     color: accent,
-    borderBottom: `1px solid #d9d4c7`,
+    borderBottom: "1px solid #d9d4c7",
     paddingBottom: "0.25rem",
     marginBottom: "0.6rem",
   };
@@ -1933,15 +2422,17 @@ function ElegantTemplate({ resume, sections, accent }: TplProps) {
         />
       </div>
       {sections.map((s) => (
-        <div key={s.id}>{renderSection(s, heading, accent)}</div>
+        <DS key={s.id} section={s}>
+          {renderSection(s, h, accent)}
+        </DS>
       ))}
     </div>
   );
 }
 
-// ── 8. Technical ──────────────────────────────────────────
+// 8. Technical
 function TechnicalTemplate({ resume, sections, accent }: TplProps) {
-  const heading: React.CSSProperties = {
+  const h: React.CSSProperties = {
     fontSize: "0.6rem",
     fontWeight: 700,
     letterSpacing: "0.14em",
@@ -1987,15 +2478,17 @@ function TechnicalTemplate({ resume, sections, accent }: TplProps) {
         </div>
       </div>
       {sections.map((s) => (
-        <div key={s.id}>{renderSection(s, heading, accent)}</div>
+        <DS key={s.id} section={s}>
+          {renderSection(s, h, accent)}
+        </DS>
       ))}
     </div>
   );
 }
 
-// ── 9. Chronological ─────────────────────────────────────
+// 9. Chronological
 function ChronologicalTemplate({ resume, sections, accent }: TplProps) {
-  const heading: React.CSSProperties = {
+  const h: React.CSSProperties = {
     fontSize: "0.6rem",
     fontWeight: 700,
     letterSpacing: "0.12em",
@@ -2032,32 +2525,34 @@ function ChronologicalTemplate({ resume, sections, accent }: TplProps) {
           />
         </div>
       </div>
-      <div style={{ borderLeft: `2px solid #e8e4dc`, paddingLeft: "1rem" }}>
+      <div style={{ borderLeft: "2px solid #e8e4dc", paddingLeft: "1rem" }}>
         {sections.map((s) => (
-          <div key={s.id} style={{ position: "relative" }}>
-            <div
-              style={{
-                position: "absolute",
-                left: "-1.35rem",
-                top: "0.15rem",
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: accent,
-                border: "2px solid #fdfcfa",
-              }}
-            />
-            {renderSection(s, heading, accent)}
-          </div>
+          <DS key={s.id} section={s}>
+            <div style={{ position: "relative" }}>
+              <div
+                style={{
+                  position: "absolute",
+                  left: "-1.35rem",
+                  top: "0.15rem",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: accent,
+                  border: "2px solid #fdfcfa",
+                }}
+              />
+              {renderSection(s, h, accent)}
+            </div>
+          </DS>
         ))}
       </div>
     </div>
   );
 }
 
-// ── 10. Bold ──────────────────────────────────────────────
+// 10. Bold
 function BoldTemplate({ resume, sections, accent }: TplProps) {
-  const heading: React.CSSProperties = {
+  const h: React.CSSProperties = {
     fontSize: "0.62rem",
     fontWeight: 800,
     letterSpacing: "0.14em",
@@ -2065,18 +2560,11 @@ function BoldTemplate({ resume, sections, accent }: TplProps) {
     color: "#0f0e0d",
     marginBottom: "0.55rem",
     paddingBottom: "0.2rem",
-    borderBottom: `2px solid #0f0e0d`,
+    borderBottom: "2px solid #0f0e0d",
   };
   return (
     <div style={{ ...WRAP, padding: "0" }}>
-      {/* Bold header block */}
-      <div
-        style={{
-          background: "#0f0e0d",
-          padding: "1.75rem 2rem",
-          marginBottom: "0",
-        }}
-      >
+      <div style={{ background: "#0f0e0d", padding: "1.75rem 2rem" }}>
         <h1
           style={{
             fontFamily: "'Instrument Serif', serif",
@@ -2102,11 +2590,12 @@ function BoldTemplate({ resume, sections, accent }: TplProps) {
           </p>
         )}
       </div>
-      {/* Accent strip */}
       <div style={{ height: 4, background: accent }} />
       <div style={{ padding: "1.5rem 2rem" }}>
         {sections.map((s) => (
-          <div key={s.id}>{renderSection(s, heading, accent)}</div>
+          <DS key={s.id} section={s}>
+            {renderSection(s, h, accent)}
+          </DS>
         ))}
       </div>
     </div>

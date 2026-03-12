@@ -219,7 +219,7 @@ export function ItemCard({
         borderRadius: 2,
         background: "var(--rv-white)",
         marginBottom: "0.5rem",
-        overflow: "hidden",
+        position: "relative",
       }}
     >
       <div

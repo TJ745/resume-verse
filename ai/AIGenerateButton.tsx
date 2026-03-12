@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useAIGenerate } from "./useAIGenerate";
 
 type GenerateType =
@@ -48,6 +48,8 @@ export default function AIGenerateButton({
   const [ctx, setCtx] = useState<Record<string, string>>(prefillContext);
   const [result, setResult] = useState("");
   const popoverRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
 
   const { generate, streaming, streamedText, error, reset } = useAIGenerate({
     onDone: (text) => setResult(text),
@@ -59,24 +61,47 @@ export default function AIGenerateButton({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Close on outside click
+  const updatePos = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    // Prefer opening below; if not enough space open above
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const popH = 380; // approximate max height
+    const top = spaceBelow >= popH ? rect.bottom + 6 : rect.top - popH - 6;
+    // Keep within horizontal viewport
+    const left = Math.min(rect.left, window.innerWidth - 332);
+    setPos({ top, left });
+  }, []);
+
+  // Close on outside click + reposition on scroll/resize
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (
         popoverRef.current &&
-        !popoverRef.current.contains(e.target as Node)
+        !popoverRef.current.contains(e.target as Node) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(e.target as Node)
       ) {
         if (!streaming) setOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [streaming]);
+    if (open) {
+      window.addEventListener("scroll", updatePos, true);
+      window.addEventListener("resize", updatePos);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      window.removeEventListener("scroll", updatePos, true);
+      window.removeEventListener("resize", updatePos);
+    };
+  }, [streaming, open, updatePos]);
 
   function handleOpen() {
     reset();
     setResult("");
     setCtx(prefillContext);
+    updatePos();
     setOpen(true);
   }
 
@@ -98,6 +123,7 @@ export default function AIGenerateButton({
     <div className="relative">
       {/* Trigger button */}
       <button
+        ref={triggerRef}
         onClick={handleOpen}
         className="inline-flex items-center gap-1.5 text-xs font-medium transition-all duration-150"
         style={{
@@ -124,18 +150,20 @@ export default function AIGenerateButton({
         {label}
       </button>
 
-      {/* Popover */}
+      {/* Popover — rendered as fixed overlay so it escapes overflow:hidden parents */}
       {open && (
         <div
           ref={popoverRef}
-          className="absolute right-0 z-20"
           style={{
-            top: "calc(100% + 6px)",
+            position: "fixed",
+            zIndex: 200,
+            top: pos.top,
+            left: pos.left,
             width: 320,
             background: "var(--rv-white)",
             border: "1px solid var(--rv-border)",
             borderRadius: 2,
-            boxShadow: "0 12px 32px rgba(15,14,13,0.12)",
+            boxShadow: "0 12px 40px rgba(15,14,13,0.18)",
             padding: "1rem",
           }}
         >
