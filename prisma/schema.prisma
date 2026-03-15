@@ -1,7 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  // previewFeatures = ["driverAdapters"]
-  // output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -11,13 +9,25 @@ datasource db {
 // ─── BetterAuth required models ───────────────────────────
 
 model User {
-  id            String   @id @default(cuid())
+  id            String  @id @default(cuid())
   name          String?
-  email         String   @unique
-  emailVerified Boolean  @default(false)
+  email         String  @unique
+  emailVerified Boolean @default(false)
   image         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+
+  // Subscription
+  plan                   String    @default("free") // "free" | "pro"
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+
+  // AI usage (free tier)
+  aiUsageCount   Int      @default(0)
+  aiUsageResetAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   accounts Account[]
   sessions Session[]
@@ -76,6 +86,7 @@ model Resume {
   colorScheme  String   @default("terracotta")
   jobTitle     String? // used as AI context
   personalInfo Json?
+  isPublic     Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

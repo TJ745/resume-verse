@@ -3,6 +3,7 @@ import FeaturesSection from "@/components/landing/FeatureSection";
 import HeroSection from "@/components/landing/HeroSection";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Navbar from "@/components/landing/Navbar";
+import PricingSection from "@/components/landing/PricingSection";
 import TemplatesSection from "@/components/landing/TemplateSection";
 
 export default function Home() {
@@ -14,6 +15,7 @@ export default function Home() {
         <FeaturesSection />
         <TemplatesSection />
         <HowItWorks />
+        <PricingSection />
         <CTASection />
       </main>
       <Footer />

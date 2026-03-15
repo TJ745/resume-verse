@@ -2,6 +2,7 @@ import { openai } from "@/lib/openai";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextRequest } from "next/server";
+import { checkAIUsage } from "@/lib/ai-gate";
 
 export const runtime = "nodejs";
 
@@ -71,6 +72,15 @@ export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  // ── AI usage gate ──────────────────────────────────────
+  const gate = await checkAIUsage(session.user.id);
+  if (!gate.allowed) {
+    return Response.json(
+      { error: gate.reason, upgradeRequired: true, used: gate.used, limit: gate.limit },
+      { status: 402 }
+    );
   }
 
   const body = (await request.json()) as GenerateRequest;

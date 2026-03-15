@@ -5,20 +5,41 @@
 // import StepWizard from "../steps/StepWizard";
 // import ResumePreview from "./ResumePreview";
 // import ATSPanel from "./ATSPanel";
+// import JDMatchPanel from "./JDMatchPanel";
+// import CoverLetterPanel from "./CoverLetterPanel";
+// import GrammarPanel from "./GrammarPanel";
+// import AchievementPanel from "./AchievementPanel";
+// import CareerGapPanel from "./CareerGapPanel";
+// import InterviewPrepPanel from "./InterviewPrepPanel";
+// import MobileBuilderBlock from "./MobileBuilderBlock";
+// import CompletionBar from "./CompletionBar";
 // import type { ResumeData, ResumeSection, PersonalInfo } from "@/types/resume";
 
 // interface BuilderClientProps {
 //   resume: ResumeData;
+//   isPublic?: boolean;
 // }
 
-// export default function BuilderClient({ resume }: BuilderClientProps) {
+// type PanelId =
+//   | "ats"
+//   | "jd"
+//   | "cover"
+//   | "grammar"
+//   | "achievement"
+//   | "gap"
+//   | "interview"
+//   | null;
+
+// export default function BuilderClient({
+//   resume,
+//   isPublic = false,
+// }: BuilderClientProps) {
 //   const [sections, setSections] = useState<ResumeSection[]>(resume.sections);
 //   const [personalInfo, setPersonalInfo] = useState<PersonalInfo | null>(
 //     resume.personalInfo,
 //   );
-//   const [atsOpen, setAtsOpen] = useState(false);
+//   const [panel, setPanel] = useState<PanelId>(null);
 
-//   // Live preview resume — always reflects latest UI state
 //   const liveResume: ResumeData = {
 //     ...resume,
 //     personalInfo,
@@ -26,15 +47,26 @@
 //     title: resume.title,
 //   };
 
+//   const closePanel = () => setPanel(null);
+
 //   return (
 //     <>
-//       {/* Topbar lives here so it can share atsOpen state */}
+//       <MobileBuilderBlock />
 //       <BuilderTopbar
 //         resumeId={resume.id}
+//         resume={liveResume}
+//         sections={sections}
 //         title={resume.title}
 //         template={resume.template}
 //         colorScheme={resume.colorScheme}
-//         onATSOpen={() => setAtsOpen(true)}
+//         onATSOpen={() => setPanel("ats")}
+//         onJDMatchOpen={() => setPanel("jd")}
+//         onCoverLetterOpen={() => setPanel("cover")}
+//         onGrammarOpen={() => setPanel("grammar")}
+//         onAchievementOpen={() => setPanel("achievement")}
+//         onCareerGapOpen={() => setPanel("gap")}
+//         onInterviewOpen={() => setPanel("interview")}
+//         isPublic={isPublic}
 //       />
 
 //       <div
@@ -57,6 +89,7 @@
 //             flexDirection: "column",
 //           }}
 //         >
+//           <CompletionBar resume={liveResume} sections={sections} />
 //           <StepWizard
 //             resume={liveResume}
 //             sections={sections}
@@ -78,7 +111,6 @@
 //             gap: "0.75rem",
 //           }}
 //         >
-//           {/* Label */}
 //           <div
 //             style={{
 //               fontSize: "0.6rem",
@@ -90,8 +122,6 @@
 //           >
 //             Preview · {liveResume.template}
 //           </div>
-
-//           {/* A4-ish paper */}
 //           <div
 //             style={{
 //               width: "100%",
@@ -111,10 +141,49 @@
 //         </div>
 //       </div>
 
-//       {/* ATS Panel */}
+//       {/* ── All Smart Tool Panels — one open at a time ── */}
 //       <ATSPanel
-//         open={atsOpen}
-//         onClose={() => setAtsOpen(false)}
+//         open={panel === "ats"}
+//         onClose={closePanel}
+//         resume={liveResume}
+//         sections={sections}
+//       />
+//       <JDMatchPanel
+//         open={panel === "jd"}
+//         onClose={closePanel}
+//         resume={liveResume}
+//         sections={sections}
+//         onSectionsChange={setSections}
+//       />
+//       <CoverLetterPanel
+//         open={panel === "cover"}
+//         onClose={closePanel}
+//         resume={liveResume}
+//         sections={sections}
+//       />
+//       <GrammarPanel
+//         open={panel === "grammar"}
+//         onClose={closePanel}
+//         resume={liveResume}
+//         sections={sections}
+//         onSectionsChange={setSections}
+//       />
+//       <AchievementPanel
+//         open={panel === "achievement"}
+//         onClose={closePanel}
+//         resume={liveResume}
+//         sections={sections}
+//         onSectionsChange={setSections}
+//       />
+//       <CareerGapPanel
+//         open={panel === "gap"}
+//         onClose={closePanel}
+//         resume={liveResume}
+//         sections={sections}
+//       />
+//       <InterviewPrepPanel
+//         open={panel === "interview"}
+//         onClose={closePanel}
 //         resume={liveResume}
 //         sections={sections}
 //       />
@@ -132,22 +201,39 @@ import ATSPanel from "./ATSPanel";
 import JDMatchPanel from "./JDMatchPanel";
 import CoverLetterPanel from "./CoverLetterPanel";
 import GrammarPanel from "./GrammarPanel";
+import AchievementPanel from "./AchievementPanel";
+import CareerGapPanel from "./CareerGapPanel";
+import InterviewPrepPanel from "./InterviewPrepPanel";
+import MobileBuilderBlock from "./MobileBuilderBlock";
+import CompletionBar from "./CompletionBar";
 import type { ResumeData, ResumeSection, PersonalInfo } from "@/types/resume";
 
 interface BuilderClientProps {
   resume: ResumeData;
+  isPublic?: boolean;
+  isPro?: boolean;
 }
 
-export default function BuilderClient({ resume }: BuilderClientProps) {
+type PanelId =
+  | "ats"
+  | "jd"
+  | "cover"
+  | "grammar"
+  | "achievement"
+  | "gap"
+  | "interview"
+  | null;
+
+export default function BuilderClient({
+  resume,
+  isPublic = false,
+  isPro = false,
+}: BuilderClientProps) {
   const [sections, setSections] = useState<ResumeSection[]>(resume.sections);
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo | null>(
     resume.personalInfo,
   );
-
-  // One panel open at a time
-  const [panel, setPanel] = useState<"ats" | "jd" | "cover" | "grammar" | null>(
-    null,
-  );
+  const [panel, setPanel] = useState<PanelId>(null);
 
   const liveResume: ResumeData = {
     ...resume,
@@ -160,8 +246,11 @@ export default function BuilderClient({ resume }: BuilderClientProps) {
 
   return (
     <>
+      <MobileBuilderBlock />
       <BuilderTopbar
         resumeId={resume.id}
+        resume={liveResume}
+        sections={sections}
         title={resume.title}
         template={resume.template}
         colorScheme={resume.colorScheme}
@@ -169,6 +258,11 @@ export default function BuilderClient({ resume }: BuilderClientProps) {
         onJDMatchOpen={() => setPanel("jd")}
         onCoverLetterOpen={() => setPanel("cover")}
         onGrammarOpen={() => setPanel("grammar")}
+        onAchievementOpen={() => setPanel("achievement")}
+        onCareerGapOpen={() => setPanel("gap")}
+        onInterviewOpen={() => setPanel("interview")}
+        isPublic={isPublic}
+        isPro={isPro}
       />
 
       <div
@@ -191,6 +285,7 @@ export default function BuilderClient({ resume }: BuilderClientProps) {
             flexDirection: "column",
           }}
         >
+          <CompletionBar resume={liveResume} sections={sections} />
           <StepWizard
             resume={liveResume}
             sections={sections}
@@ -242,7 +337,7 @@ export default function BuilderClient({ resume }: BuilderClientProps) {
         </div>
       </div>
 
-      {/* ── Smart Tool Panels — one shown at a time ── */}
+      {/* ── All Smart Tool Panels — one open at a time ── */}
       <ATSPanel
         open={panel === "ats"}
         onClose={closePanel}
@@ -268,6 +363,25 @@ export default function BuilderClient({ resume }: BuilderClientProps) {
         resume={liveResume}
         sections={sections}
         onSectionsChange={setSections}
+      />
+      <AchievementPanel
+        open={panel === "achievement"}
+        onClose={closePanel}
+        resume={liveResume}
+        sections={sections}
+        onSectionsChange={setSections}
+      />
+      <CareerGapPanel
+        open={panel === "gap"}
+        onClose={closePanel}
+        resume={liveResume}
+        sections={sections}
+      />
+      <InterviewPrepPanel
+        open={panel === "interview"}
+        onClose={closePanel}
+        resume={liveResume}
+        sections={sections}
       />
     </>
   );
