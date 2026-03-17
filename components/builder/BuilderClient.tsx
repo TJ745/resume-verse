@@ -18,6 +18,7 @@
 // interface BuilderClientProps {
 //   resume: ResumeData;
 //   isPublic?: boolean;
+//   isPro?: boolean;
 // }
 
 // type PanelId =
@@ -33,6 +34,7 @@
 // export default function BuilderClient({
 //   resume,
 //   isPublic = false,
+//   isPro = false,
 // }: BuilderClientProps) {
 //   const [sections, setSections] = useState<ResumeSection[]>(resume.sections);
 //   const [personalInfo, setPersonalInfo] = useState<PersonalInfo | null>(
@@ -67,6 +69,7 @@
 //         onCareerGapOpen={() => setPanel("gap")}
 //         onInterviewOpen={() => setPanel("interview")}
 //         isPublic={isPublic}
+//         isPro={isPro}
 //       />
 
 //       <div
@@ -356,6 +359,7 @@ export default function BuilderClient({
         onClose={closePanel}
         resume={liveResume}
         sections={sections}
+        isPro={isPro}
       />
       <GrammarPanel
         open={panel === "grammar"}

@@ -16,11 +16,11 @@ model User {
   image         String?
 
   // Subscription
-  plan                   String    @default("free") // "free" | "pro"
-  stripeCustomerId       String?   @unique
-  stripeSubscriptionId   String?   @unique
-  stripePriceId          String?
-  stripeCurrentPeriodEnd DateTime?
+  plan               String    @default("free") // "free" | "pro"
+  lsCustomerId       String?   @unique
+  lsSubscriptionId   String?   @unique
+  lsVariantId        String?
+  lsCurrentPeriodEnd DateTime?
 
   // AI usage (free tier)
   aiUsageCount   Int      @default(0)

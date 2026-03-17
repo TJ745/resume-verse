@@ -125,7 +125,6 @@
 //   return resume.id;
 // }
 
-
 "use server";
 
 import { prisma } from "@/lib/prisma";
@@ -143,6 +142,23 @@ async function requireUser() {
 // ── Create ────────────────────────────────────────────────
 export async function createResume(title?: string) {
   const user = await requireUser();
+
+  // Free plan: max 1 resume
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { plan: true },
+  });
+
+  if (dbUser?.plan !== "pro") {
+    const count = await prisma.resume.count({ where: { userId: user.id } });
+    if (count >= 1) {
+      // Return an error instead of redirecting — client must show upgrade prompt
+      return {
+        error:
+          "Free plan allows 1 resume. Upgrade to Pro for unlimited resumes.",
+      };
+    }
+  }
 
   const resume = await prisma.resume.create({
     data: {
@@ -192,6 +208,21 @@ export async function togglePublic(resumeId: string, isPublic: boolean) {
 export async function duplicateResume(resumeId: string) {
   const user = await requireUser();
 
+  // Free plan: max 1 resume
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { plan: true },
+  });
+  if (dbUser?.plan !== "pro") {
+    const count = await prisma.resume.count({ where: { userId: user.id } });
+    if (count >= 1) {
+      return {
+        error:
+          "Free plan allows 1 resume. Upgrade to Pro for unlimited resumes.",
+      };
+    }
+  }
+
   const original = await prisma.resume.findFirst({
     where: { id: resumeId, userId: user.id },
     include: { sections: true },
@@ -224,9 +255,24 @@ export async function duplicateResume(resumeId: string) {
 // ── Upload & parse resume ─────────────────────────────────
 export async function uploadAndParseResume(
   title: string,
-  parsed: import("@/types/resume").ParsedResumeUpload
-): Promise<string> {
+  parsed: import("@/types/resume").ParsedResumeUpload,
+): Promise<string | { error: string }> {
   const user = await requireUser();
+
+  // Free plan: max 1 resume
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { plan: true },
+  });
+  if (dbUser?.plan !== "pro") {
+    const count = await prisma.resume.count({ where: { userId: user.id } });
+    if (count >= 1) {
+      return {
+        error:
+          "Free plan allows 1 resume. Upgrade to Pro for unlimited resumes.",
+      };
+    }
+  }
 
   const resume = await prisma.resume.create({
     data: {

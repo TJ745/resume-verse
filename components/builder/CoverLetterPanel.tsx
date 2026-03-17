@@ -151,14 +151,82 @@
 //     setTimeout(() => setCopied(false), 2000);
 //   }
 
-//   function handleDownload() {
-//     const blob = new Blob([letter], { type: "text/plain" });
-//     const url = URL.createObjectURL(blob);
-//     const a = document.createElement("a");
-//     a.href = url;
-//     a.download = `cover-letter-${resume.title.replace(/\s+/g, "-").toLowerCase()}.txt`;
-//     a.click();
-//     URL.revokeObjectURL(url);
+//   async function handleDownloadDocx() {
+//     try {
+//       const { Document, Packer, Paragraph, TextRun, AlignmentType } =
+//         await import("docx");
+//       const slug = resume.title.replace(/\s+/g, "-").toLowerCase();
+
+//       // Split letter into paragraphs on blank lines
+//       const paragraphs = letter.split(/\n\n+/).flatMap((block) => {
+//         const lines = block.split("\n").filter(Boolean);
+//         const paras = lines.map(
+//           (line) =>
+//             new Paragraph({
+//               children: [
+//                 new TextRun({ text: line, font: "Calibri", size: 24 }),
+//               ],
+//               spacing: { after: 0, line: 276 },
+//             }),
+//         );
+//         // Add blank line after each block
+//         paras.push(
+//           new Paragraph({ children: [new TextRun("")], spacing: { after: 0 } }),
+//         );
+//         return paras;
+//       });
+
+//       const doc = new Document({
+//         styles: {
+//           default: { document: { run: { font: "Calibri", size: 24 } } },
+//         },
+//         sections: [
+//           {
+//             properties: {
+//               page: {
+//                 size: { width: 12240, height: 15840 },
+//                 margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+//               },
+//             },
+//             children: paragraphs,
+//           },
+//         ],
+//       });
+
+//       const buffer = await Packer.toBlob(doc);
+//       const url = URL.createObjectURL(buffer);
+//       const a = document.createElement("a");
+//       a.href = url;
+//       a.download = `cover-letter-${slug}.docx`;
+//       a.click();
+//       URL.revokeObjectURL(url);
+//     } catch (err) {
+//       console.error("DOCX export failed:", err);
+//     }
+//   }
+
+//   function handleDownloadPdf() {
+//     const slug = resume.title.replace(/\s+/g, "-").toLowerCase();
+//     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+//       @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap');
+//       * { margin: 0; padding: 0; box-sizing: border-box; }
+//       body { font-family: 'Lato', Arial, sans-serif; font-size: 12pt; line-height: 1.7;
+//              color: #1a1a1a; padding: 1.2in 1.1in; max-width: 8.5in; }
+//       p { margin-bottom: 0.9em; white-space: pre-wrap; }
+//       @media print { body { padding: 0.9in; } @page { margin: 0; size: letter; } }
+//     </style></head><body>${letter
+//       .split(/\n\n+/)
+//       .map((block) => `<p>${block.replace(/\n/g, "<br>")}</p>`)
+//       .join("")}</body></html>`;
+
+//     const win = window.open("", "_blank");
+//     if (!win) return;
+//     win.document.write(html);
+//     win.document.close();
+//     win.onload = () => {
+//       win.document.title = `cover-letter-${slug}`;
+//       win.print();
+//     };
 //   }
 
 //   if (!open) return null;
@@ -416,7 +484,8 @@
 //                   <ActionBtn onClick={handleCopy}>
 //                     {copied ? "✓ Copied" : "Copy"}
 //                   </ActionBtn>
-//                   <ActionBtn onClick={handleDownload}>Download .txt</ActionBtn>
+//                   <ActionBtn onClick={handleDownloadDocx}>↓ .docx</ActionBtn>
+//                   <ActionBtn onClick={handleDownloadPdf}>↓ PDF</ActionBtn>
 //                 </div>
 //               </div>
 //               <div
@@ -587,6 +656,7 @@ interface Props {
   onClose: () => void;
   resume: ResumeData;
   sections: ResumeSection[];
+  isPro?: boolean;
 }
 
 type Tone = "professional" | "friendly" | "confident";
@@ -664,6 +734,7 @@ export default function CoverLetterPanel({
   onClose,
   resume,
   sections,
+  isPro = false,
 }: Props) {
   const [jobDescription, setJobDescription] = useState("");
   const [hiringManager, setHiringManager] = useState("");
@@ -707,7 +778,14 @@ export default function CoverLetterPanel({
           companyName,
         }),
       });
-      if (!res.ok) throw new Error("Generation failed");
+      if (res.status === 402) {
+        const data = await res.json();
+        throw new Error(
+          data.error ??
+            "Free plan limit reached. Upgrade to Pro for unlimited AI uses.",
+        );
+      }
+      if (!res.ok) throw new Error("Something went wrong. Please try again.");
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let acc = "";
@@ -1063,7 +1141,37 @@ export default function CoverLetterPanel({
                   <ActionBtn onClick={handleCopy}>
                     {copied ? "✓ Copied" : "Copy"}
                   </ActionBtn>
-                  <ActionBtn onClick={handleDownloadDocx}>↓ .docx</ActionBtn>
+                  <ActionBtn
+                    onClick={
+                      isPro
+                        ? handleDownloadDocx
+                        : async () => {
+                            const res = await fetch(
+                              "/api/lemonsqueezy/checkout",
+                              { method: "POST" },
+                            );
+                            const data = await res.json();
+                            if (data.url) window.location.href = data.url;
+                          }
+                    }
+                  >
+                    ↓ .docx
+                    {!isPro && (
+                      <span
+                        style={{
+                          marginLeft: 3,
+                          fontSize: "0.55rem",
+                          fontWeight: 800,
+                          background: "var(--rv-accent)",
+                          color: "#fff",
+                          borderRadius: 99,
+                          padding: "1px 4px",
+                        }}
+                      >
+                        PRO
+                      </span>
+                    )}
+                  </ActionBtn>
                   <ActionBtn onClick={handleDownloadPdf}>↓ PDF</ActionBtn>
                 </div>
               </div>

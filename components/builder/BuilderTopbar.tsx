@@ -4,8 +4,8 @@
 // import Link from "next/link";
 // import { updateResumeMeta } from "@/actions/builder.actions";
 // import ShareButton from "./ShareButton";
-// import ExportPDFButton from "../shared/ExportPDFButton";
-// import ExportDOCXButton from "../shared/ExportDOCXButton";
+// import ExportPDFButton from "@/components/shared/ExportPDFButton";
+// import ExportDOCXButton from "@/components/shared/ExportDOCXButton";
 
 // // ── Templates & color schemes ─────────────────────────────
 // // Imported for local use + re-exported so other files can import from here
@@ -31,6 +31,7 @@
 //   onCareerGapOpen: () => void;
 //   onInterviewOpen: () => void;
 //   isPublic?: boolean;
+//   isPro?: boolean;
 // }
 
 // // ── Reusable dropdown wrapper ─────────────────────────────
@@ -116,6 +117,7 @@
 //   onCareerGapOpen,
 //   onInterviewOpen,
 //   isPublic = false,
+//   isPro = false,
 // }: BuilderTopbarProps) {
 //   const [editingTitle, setEditingTitle] = useState(false);
 //   const [titleValue, setTitleValue] = useState(title);
@@ -161,7 +163,7 @@
 //       <div className="flex items-center gap-4 min-w-0">
 //         <Link
 //           href="/dashboard"
-//           className="flex items-center gap-1.5 text-sm no-underline shrink-0 transition-opacity duration-150 hover:opacity-60"
+//           className="flex items-center gap-1.5 text-sm no-underline flex-shrink-0 transition-opacity duration-150 hover:opacity-60"
 //           style={{ color: "var(--rv-muted)" }}
 //         >
 //           <span>←</span>
@@ -216,7 +218,7 @@
 
 //         {isPending && (
 //           <span
-//             className="text-xs shrink-0"
+//             className="text-xs flex-shrink-0"
 //             style={{ color: "var(--rv-muted)" }}
 //           >
 //             Saving…
@@ -225,7 +227,7 @@
 //       </div>
 
 //       {/* ── Right: dropdowns + export ── */}
-//       <div className="flex items-center gap-2 shrink-0">
+//       <div className="flex items-center gap-2 flex-shrink-0">
 //         {/* Color scheme dropdown */}
 //         <Dropdown
 //           align="right"
@@ -570,7 +572,7 @@
 
 //         {/* Export */}
 //         <ShareButton resumeId={resumeId} isPublic={isPublic} />
-//         <ExportDOCXButton resume={resume} sections={sections} />
+//         <ExportDOCXButton resume={resume} sections={sections} isPro={isPro} />
 //         <ExportPDFButton resumeId={resumeId} variant="topbar" />
 //       </div>
 //     </header>
@@ -1114,56 +1116,90 @@ export default function BuilderTopbar({
           >
             Template
           </div>
-          {TEMPLATES.map((tmpl) => (
-            <button
-              key={tmpl.id}
-              onClick={() => handleTemplateChange(tmpl.id)}
-              className="w-full flex flex-col px-3 py-2 text-xs transition-colors duration-100"
-              style={{
-                background:
-                  currentTemplate === tmpl.id ? "var(--rv-cream)" : "none",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                textAlign: "left",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "var(--rv-cream)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.background =
-                  currentTemplate === tmpl.id ? "var(--rv-cream)" : "none")
-              }
-            >
-              <div className="flex items-center justify-between w-full">
+          {TEMPLATES.map((tmpl) => {
+            const FREE_TEMPLATES = ["modern", "classic", "minimal"];
+            const isLocked = !isPro && !FREE_TEMPLATES.includes(tmpl.id);
+            return (
+              <button
+                key={tmpl.id}
+                onClick={() => {
+                  if (isLocked) {
+                    fetch("/api/lemonsqueezy/checkout", { method: "POST" })
+                      .then((r) => r.json())
+                      .then((d) => {
+                        if (d.url) window.location.href = d.url;
+                      });
+                    return;
+                  }
+                  handleTemplateChange(tmpl.id);
+                }}
+                className="w-full flex flex-col px-3 py-2 text-xs transition-colors duration-100"
+                style={{
+                  background:
+                    currentTemplate === tmpl.id ? "var(--rv-cream)" : "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  textAlign: "left",
+                  opacity: isLocked ? 0.7 : 1,
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "var(--rv-cream)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background =
+                    currentTemplate === tmpl.id ? "var(--rv-cream)" : "none")
+                }
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span
+                    className="font-medium"
+                    style={{
+                      color:
+                        currentTemplate === tmpl.id
+                          ? "var(--rv-accent)"
+                          : "var(--rv-ink)",
+                    }}
+                  >
+                    {tmpl.label}
+                  </span>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 4 }}
+                  >
+                    {isLocked && (
+                      <span
+                        style={{
+                          fontSize: "0.5rem",
+                          fontWeight: 800,
+                          background: "var(--rv-accent)",
+                          color: "#fff",
+                          borderRadius: 99,
+                          padding: "1px 5px",
+                          letterSpacing: "0.06em",
+                        }}
+                      >
+                        PRO
+                      </span>
+                    )}
+                    {currentTemplate === tmpl.id && (
+                      <span style={{ color: "var(--rv-accent)", fontSize: 10 }}>
+                        ✓
+                      </span>
+                    )}
+                  </div>
+                </div>
                 <span
-                  className="font-medium"
                   style={{
-                    color:
-                      currentTemplate === tmpl.id
-                        ? "var(--rv-accent)"
-                        : "var(--rv-ink)",
+                    color: "var(--rv-muted)",
+                    marginTop: 1,
+                    fontSize: "0.7rem",
                   }}
                 >
-                  {tmpl.label}
+                  {tmpl.description}
                 </span>
-                {currentTemplate === tmpl.id && (
-                  <span style={{ color: "var(--rv-accent)", fontSize: 10 }}>
-                    ✓
-                  </span>
-                )}
-              </div>
-              <span
-                style={{
-                  color: "var(--rv-muted)",
-                  marginTop: 1,
-                  fontSize: "0.7rem",
-                }}
-              >
-                {tmpl.description}
-              </span>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </Dropdown>
 
         {/* ── Smart Tools dropdown ── */}

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
+import { getCustomerPortalUrl } from "@/lib/lemonsqueezy";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -12,22 +12,24 @@ export async function POST() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { stripeCustomerId: true },
+    select: { lsSubscriptionId: true, plan: true },
   });
 
-  if (!user?.stripeCustomerId) {
+  if (!user?.lsSubscriptionId || user.plan !== "pro") {
     return NextResponse.json(
-      { error: "No billing account found" },
+      { error: "No active subscription found" },
       { status: 404 },
     );
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
-  const portalSession = await stripe.billingPortal.sessions.create({
-    customer: user.stripeCustomerId,
-    return_url: `${baseUrl}/dashboard/settings`,
-  });
-
-  return NextResponse.json({ url: portalSession.url });
+  try {
+    const url = await getCustomerPortalUrl(user.lsSubscriptionId);
+    return NextResponse.json({ url });
+  } catch (err) {
+    console.error("LemonSqueezy portal error:", err);
+    return NextResponse.json(
+      { error: "Failed to get billing portal" },
+      { status: 500 },
+    );
+  }
 }

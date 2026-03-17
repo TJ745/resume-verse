@@ -550,10 +550,8 @@
 //     "github": "",
 //     "website": "",
 //     "photoUrl": "",
-//     "maritalStatus": "",
-//     "showPhoto": false,
-//     "showMaritalStatus": false,
-//     "showWebsite": false,
+//         "showPhoto": false,
+//         "showWebsite": false,
 //     "showAddress": true
 //   },
 //   "sections": [
@@ -848,8 +846,16 @@ export default function UploadResumeButton() {
       setProgress("Creating resume…");
 
       // Save to database
-      const resumeId = await uploadAndParseResume(title.trim(), parsed);
+      const result = await uploadAndParseResume(title.trim(), parsed);
 
+      // Free plan limit check
+      if (typeof result === "object" && result.error) {
+        setStep("error");
+        setErrorMsg(result.error);
+        return;
+      }
+
+      const resumeId = result as string;
       setStep("done");
       setOpen(false);
       router.push(`/builder/${resumeId}`);
@@ -1163,6 +1169,32 @@ export default function UploadResumeButton() {
                 }}
               >
                 {errorMsg}
+                {errorMsg.includes("Free plan") && (
+                  <button
+                    onClick={async () => {
+                      const res = await fetch("/api/lemonsqueezy/checkout", {
+                        method: "POST",
+                      });
+                      const data = await res.json();
+                      if (data.url) window.location.href = data.url;
+                    }}
+                    style={{
+                      display: "block",
+                      marginTop: 8,
+                      padding: "0.4rem 0.85rem",
+                      background: "var(--rv-accent)",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 2,
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    Upgrade to Pro →
+                  </button>
+                )}
               </div>
             )}
 
