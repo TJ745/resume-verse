@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "@/lib/prisma";
-import { sendResetPasswordEmail,sendWelcomeEmail } from "@/lib/mail";
+import { sendResetPasswordEmail, sendWelcomeEmail } from "@/lib/mail";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -22,7 +22,9 @@ export const auth = betterAuth({
       create: {
         after: async (user) => {
           // Fire-and-forget — don't block registration if email fails
-          sendWelcomeEmail({ to: user.email, name: user.name ?? "" }).catch(() => {});
+          sendWelcomeEmail({ to: user.email, name: user.name ?? "" }).catch(
+            () => {},
+          );
         },
       },
     },

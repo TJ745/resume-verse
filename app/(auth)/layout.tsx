@@ -6,24 +6,15 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: "var(--rv-paper)", color: "var(--rv-ink)" }}
-    >
+    <div className="min-h-screen flex flex-col bg-rv-paper text-rv-ink">
       {/* Minimal nav */}
-      <header
-        className="flex items-center justify-between px-8 py-5"
-        style={{ borderBottom: "1px solid var(--rv-border)" }}
-      >
+      <header className="flex items-center justify-between px-8 py-5 border-b border-rv-border">
         <Link
           href="/"
-          className="font-serif text-2xl no-underline"
-          style={{ color: "var(--rv-ink)", letterSpacing: "-0.02em" }}
+          className="font-serif text-3xl no-underline text-rv-ink tracking-tight"
         >
           Resume
-          <span style={{ color: "var(--rv-accent)", fontStyle: "italic" }}>
-            Verse
-          </span>
+          <span className="italic text-rv-accent">Verse</span>
         </Link>
       </header>
 
@@ -32,10 +23,7 @@ export default function AuthLayout({
         {children}
       </main>
 
-      <footer
-        className="text-center py-6"
-        style={{ fontSize: "0.8125rem", color: "var(--rv-muted)" }}
-      >
+      <footer className="text-center py-6 text-sm text-rv-muted">
         © {new Date().getFullYear()} ResumeVerse
       </footer>
     </div>

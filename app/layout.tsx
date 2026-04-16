@@ -82,7 +82,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${instrumentSerif.variable} ${dmSans.variable} font-sans antialiased`}
+        className={`${instrumentSerif.variable} ${dmSans.variable} antialiased`}
       >
         {children}
       </body>

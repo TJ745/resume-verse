@@ -36,27 +36,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full" style={{ maxWidth: 420 }}>
+    <div className="w-full max-w-105">
       {/* Heading */}
       <div className="mb-8">
-        <p
-          className="uppercase font-semibold tracking-widest mb-3"
-          style={{
-            fontSize: "0.7rem",
-            letterSpacing: "0.12em",
-            color: "var(--rv-accent)",
-          }}
-        >
+        <p className="uppercase font-semibold tracking-widest mb-3 text-xs text-rv-accent">
           Welcome back
         </p>
-        <h1
-          className="font-serif"
-          style={{
-            fontSize: "2.25rem",
-            lineHeight: 1.1,
-            letterSpacing: "-0.025em",
-          }}
-        >
+        <h1 className="font-serif text-4xl tracking-tight">
           Sign in to ResumeVerse
         </h1>
       </div>
@@ -65,11 +51,7 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* Email */}
         <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="email"
-            className="text-sm font-medium"
-            style={{ color: "var(--rv-ink)" }}
-          >
+          <label htmlFor="email" className="text-sm font-medium text-rv-ink">
             Email address
           </label>
           <input
@@ -80,7 +62,7 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            style={inputStyle}
+            className="w-full px-4 py-3 rounded border border-rv-border bg-rv-white text-rv-ink text-base focus:ring-2 focus:ring-rv-accent focus:outline-none"
           />
         </div>
 
@@ -89,18 +71,13 @@ export default function LoginPage() {
           <div className="flex items-center justify-between">
             <label
               htmlFor="password"
-              className="text-sm font-medium"
-              style={{ color: "var(--rv-ink)" }}
+              className="text-sm font-medium text-rv-ink"
             >
               Password
             </label>
             <Link
               href="/forgot-password"
-              className="text-sm no-underline"
-              style={{
-                color: "var(--rv-muted)",
-                borderBottom: "1px solid var(--rv-border)",
-              }}
+              className="text-sm no-underline text-rv-muted border-b border-rv-border"
             >
               Forgot password?
             </Link>
@@ -113,21 +90,13 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Your password"
-            style={inputStyle}
+            className="w-full px-4 py-3 rounded border border-rv-border bg-rv-white text-rv-ink text-base focus:ring-2 focus:ring-rv-accent focus:outline-none"
           />
         </div>
 
         {/* Error */}
         {error && (
-          <p
-            className="text-sm px-4 py-3"
-            style={{
-              background: "rgba(200,75,47,0.08)",
-              border: "1px solid rgba(200,75,47,0.2)",
-              borderRadius: 2,
-              color: "var(--rv-accent)",
-            }}
-          >
+          <p className="text-sm px-4 py-3 bg-[rgba(200,75,47,0.08)] border border-[rgba(200,75,47,0.2)] rounded text-rv-accent">
             {error}
           </p>
         )}
@@ -136,34 +105,18 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-1 font-semibold transition-all duration-150"
-          style={{
-            background: loading ? "var(--rv-muted)" : "var(--rv-accent)",
-            color: "var(--rv-white)",
-            padding: "0.85rem",
-            borderRadius: 2,
-            border: "none",
-            cursor: loading ? "not-allowed" : "pointer",
-            fontSize: "0.9375rem",
-          }}
+          className={`mt-1 font-semibold transition-all duration-150 text-rv-white p-3.5 rounded text-base ${loading ? "cursor-not-allowed bg-rv-muted" : "bg-rv-accent cursor-pointer"}`}
         >
           {loading ? "Signing in…" : "Sign in →"}
         </button>
       </form>
 
       {/* Footer link */}
-      <p
-        className="text-center mt-6 text-sm"
-        style={{ color: "var(--rv-muted)" }}
-      >
+      <p className="text-center mt-6 text-sm text-rv-muted">
         Don&apos;t have an account?{" "}
         <Link
           href="/register"
-          className="font-medium no-underline"
-          style={{
-            color: "var(--rv-ink)",
-            borderBottom: "1px solid var(--rv-border)",
-          }}
+          className="font-medium no-underline text-rv-ink border-b border-rv-border"
         >
           Create one free
         </Link>
@@ -171,15 +124,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "0.75rem 1rem",
-  border: "1px solid var(--rv-border)",
-  borderRadius: 2,
-  background: "var(--rv-white)",
-  color: "var(--rv-ink)",
-  fontSize: "0.9375rem",
-  outline: "none",
-  fontFamily: "inherit",
-};

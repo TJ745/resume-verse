@@ -10,71 +10,30 @@ const LAST_UPDATED = "March 2026";
 
 export default function TermsPage() {
   return (
-    <div style={{ minHeight: "100vh", background: "var(--rv-paper)" }}>
+    <div className="min-h-screen bg-rv-paper">
       {/* Topbar */}
-      <header
-        style={{
-          borderBottom: "1px solid var(--rv-border)",
-          padding: "1.25rem 4rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
+      <header className="border-b border-rv-border px-16 py-5 flex items-center justify-between">
         <Link
           href="/"
-          className="font-serif text-xl no-underline"
-          style={{ color: "var(--rv-ink)", letterSpacing: "-0.02em" }}
+          className="font-serif text-3xl no-underline text-rv-ink tracking-tight"
         >
           Resume
-          <span style={{ color: "var(--rv-accent)", fontStyle: "italic" }}>
-            Verse
-          </span>
+          <span className="italic text-rv-accent">Verse</span>
         </Link>
-        <Link
-          href="/"
-          style={{
-            fontSize: "0.8rem",
-            color: "var(--rv-muted)",
-            textDecoration: "none",
-          }}
-        >
+        <Link href="/" className="text-sm text-rv-muted">
           ← Back to home
         </Link>
       </header>
 
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "4rem 2rem" }}>
+      <div className="max-w-4xl mx-auto px-8 py-16">
         {/* Header */}
-        <p
-          style={{
-            fontSize: "0.7rem",
-            fontWeight: 700,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "var(--rv-accent)",
-            marginBottom: "0.75rem",
-          }}
-        >
+        <p className="text-xs font-bold tracking-widest uppercase text-rv-accent mb-3">
           Legal
         </p>
-        <h1
-          className="font-serif"
-          style={{
-            fontSize: "clamp(2rem, 4vw, 3rem)",
-            color: "var(--rv-ink)",
-            lineHeight: 1.1,
-            marginBottom: "0.75rem",
-          }}
-        >
+        <h1 className="font-serif mb-3 text-rv-ink text-5xl">
           Terms of Service
         </h1>
-        <p
-          style={{
-            fontSize: "0.82rem",
-            color: "var(--rv-muted)",
-            marginBottom: "3rem",
-          }}
-        >
+        <p className="text-sm text-rv-muted mb-12">
           Last updated: {LAST_UPDATED}
         </p>
 
@@ -134,16 +93,16 @@ export default function TermsPage() {
 
         <Section title="8. AI-Generated Content">
           AI-generated content (resume bullets, cover letters, etc.) is produced
-          by OpenAI's models. We do not guarantee accuracy or completeness of AI
-          output. You are responsible for reviewing all AI-generated content
-          before using it in job applications.
+          by OpenAI&apos;s models. We do not guarantee accuracy or completeness
+          of AI output. You are responsible for reviewing all AI-generated
+          content before using it in job applications.
         </Section>
 
         <Section title="9. Disclaimers">
-          ResumeVerse is provided "as is" without warranties of any kind. We do
-          not guarantee that the service will be uninterrupted, error-free, or
-          that use of our resumes will result in employment. We are not
-          responsible for hiring decisions made by third parties.
+          ResumeVerse is provided &quot;as is&quot; without warranties of any
+          kind. We do not guarantee that the service will be uninterrupted,
+          error-free, or that use of our resumes will result in employment. We
+          are not responsible for hiring decisions made by third parties.
         </Section>
 
         <Section title="10. Limitation of Liability">
@@ -168,12 +127,9 @@ export default function TermsPage() {
 
         <Section title="13. Contact">
           For questions about these terms, contact us at:{" "}
-          <a
-            href="mailto:legal@resumeverse.com"
-            style={{ color: "var(--rv-accent)" }}
-          >
+          <Link href="mailto:legal@resumeverse.com" className="text-rv-accent">
             legal@resumeverse.com
-          </a>
+          </Link>
         </Section>
       </div>
     </div>
@@ -188,26 +144,9 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ marginBottom: "2rem" }}>
-      <h2
-        style={{
-          fontSize: "1rem",
-          fontWeight: 700,
-          color: "var(--rv-ink)",
-          marginBottom: "0.6rem",
-        }}
-      >
-        {title}
-      </h2>
-      <p
-        style={{
-          fontSize: "0.875rem",
-          color: "var(--rv-muted)",
-          lineHeight: 1.75,
-        }}
-      >
-        {children}
-      </p>
+    <div className="mb-8">
+      <h2 className="text-base font-bold text-rv-ink mb-2">{title}</h2>
+      <p className="text-sm text-rv-muted">{children}</p>
     </div>
   );
 }

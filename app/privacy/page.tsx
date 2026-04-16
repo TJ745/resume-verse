@@ -11,78 +11,36 @@ const LAST_UPDATED = "March 2026";
 
 export default function PrivacyPage() {
   return (
-    <div style={{ minHeight: "100vh", background: "var(--rv-paper)" }}>
+    <div className="min-h-screen bg-rv-paper">
       {/* Topbar */}
-      <header
-        style={{
-          borderBottom: "1px solid var(--rv-border)",
-          padding: "1.25rem 4rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
+      <header className="border-b border-rv-border px-16 py-5 flex items-center justify-between">
         <Link
           href="/"
-          className="font-serif text-xl no-underline"
-          style={{ color: "var(--rv-ink)", letterSpacing: "-0.02em" }}
+          className="font-serif text-3xl no-underline text-rv-ink tracking-tight"
         >
           Resume
-          <span style={{ color: "var(--rv-accent)", fontStyle: "italic" }}>
-            Verse
-          </span>
+          <span className="italic text-rv-accent">Verse</span>
         </Link>
-        <Link
-          href="/"
-          style={{
-            fontSize: "0.8rem",
-            color: "var(--rv-muted)",
-            textDecoration: "none",
-          }}
-        >
+        <Link href="/" className="text-sm text-rv-muted">
           ← Back to home
         </Link>
       </header>
 
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "4rem 2rem" }}>
+      <div className="max-w-4xl mx-auto px-8 py-16">
         {/* Header */}
-        <p
-          style={{
-            fontSize: "0.7rem",
-            fontWeight: 700,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "var(--rv-accent)",
-            marginBottom: "0.75rem",
-          }}
-        >
+        <p className="text-xs font-bold tracking-widest uppercase text-rv-accent mb-3">
           Legal
         </p>
-        <h1
-          className="font-serif"
-          style={{
-            fontSize: "clamp(2rem, 4vw, 3rem)",
-            color: "var(--rv-ink)",
-            lineHeight: 1.1,
-            marginBottom: "0.75rem",
-          }}
-        >
-          Privacy Policy
-        </h1>
-        <p
-          style={{
-            fontSize: "0.82rem",
-            color: "var(--rv-muted)",
-            marginBottom: "3rem",
-          }}
-        >
+        <h1 className="font-serif mb-3 text-rv-ink text-5xl">Privacy Policy</h1>
+        <p className="text-sm text-rv-muted mb-12">
           Last updated: {LAST_UPDATED}
         </p>
 
         <Section title="1. Introduction">
-          ResumeVerse ("we", "us", or "our") operates the ResumeVerse website
-          and application. This policy explains what information we collect, how
-          we use it, and your rights regarding that information.
+          ResumeVerse (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;)
+          operates the ResumeVerse website and application. This policy explains
+          what information we collect, how we use it, and your rights regarding
+          that information.
         </Section>
 
         <Section title="2. Information We Collect">
@@ -115,9 +73,9 @@ export default function PrivacyPage() {
 
         <Section title="4. AI Processing">
           Resume content you submit to our AI features (ATS scoring, JD
-          matching, content generation, etc.) is sent to OpenAI's API for
-          processing. This data is subject to OpenAI's privacy policy. We do not
-          use your resume data to train AI models.
+          matching, content generation, etc.) is sent to OpenAI&apos;s API for
+          processing. This data is subject to OpenAI&apos;s privacy policy. We
+          do not use your resume data to train AI models.
         </Section>
 
         <Section title="5. Data Storage & Security">
@@ -165,12 +123,12 @@ export default function PrivacyPage() {
 
         <Section title="12. Contact">
           For privacy-related questions, contact us at:{" "}
-          <a
+          <Link
+            className="text-rv-accent"
             href="mailto:privacy@resumeverse.com"
-            style={{ color: "var(--rv-accent)" }}
           >
             privacy@resumeverse.com
-          </a>
+          </Link>
         </Section>
       </div>
     </div>
@@ -185,26 +143,9 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ marginBottom: "2rem" }}>
-      <h2
-        style={{
-          fontSize: "1rem",
-          fontWeight: 700,
-          color: "var(--rv-ink)",
-          marginBottom: "0.6rem",
-        }}
-      >
-        {title}
-      </h2>
-      <p
-        style={{
-          fontSize: "0.875rem",
-          color: "var(--rv-muted)",
-          lineHeight: 1.75,
-        }}
-      >
-        {children}
-      </p>
+    <div className="mb-8">
+      <h2 className="text-base font-bold text-rv-ink mb-2">{title}</h2>
+      <p className="text-sm text-rv-muted">{children}</p>
     </div>
   );
 }

@@ -63,7 +63,7 @@ export default function HeroSection() {
         </h1>
 
         {/* Subtext */}
-        <p className="rv-fade-up rv-delay-2 mb-12 text-rv-muted max-w-[420px] text-base">
+        <p className="rv-fade-up rv-delay-2 mb-12 text-rv-muted max-w-105 text-base">
           ResumeVerse uses AI to craft compelling, ATS-optimized resumes in
           minutes. Pick a template, describe your experience, and let AI do the
           heavy lifting.
@@ -107,7 +107,7 @@ export default function HeroSection() {
       {/* Right — Resume Mock */}
       <div className="rv-fade-up rv-delay-5 relative flex items-center justify-center overflow-hidden bg-rv-cream px-12 py-24">
         {/* Glow */}
-        <div className="pointer-events-none absolute  w-[400px] h-[400px] -top-[100px] -right-[100px] bg-radial-gradient(circle, rgba(200,75,47,0.08) 0%, transparent 70%)" />
+        <div className="pointer-events-none absolute w-100 h-100 -top-25 -right-25 bg-[radial-gradient(circle,rgba(200,75,47,0.15)_0%,transparent_70%)]" />
         <ResumeMock />
       </div>
     </section>

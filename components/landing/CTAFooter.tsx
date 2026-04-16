@@ -1,133 +1,20 @@
-// "use client";
-
-// import Link from "next/link";
-
-// export function CTASection() {
-//   return (
-//     <section
-//       style={{
-//         padding: "8rem 4rem",
-//         background: "var(--rv-accent)",
-//         display: "grid",
-//         gridTemplateColumns: "1fr auto",
-//         alignItems: "center",
-//         gap: "4rem",
-//       }}
-//     >
-//       <h2
-//         className="font-serif"
-//         style={{
-//           fontSize: "clamp(2.5rem, 4vw, 4rem)",
-//           color: "var(--rv-white)",
-//           lineHeight: 1.1,
-//           letterSpacing: "-0.03em",
-//         }}
-//       >
-//         Ready to land your
-//         <br />
-//         <em style={{ fontStyle: "italic", color: "rgba(255,255,255,0.6)" }}>
-//           next interview?
-//         </em>
-//       </h2>
-
-//       <Link
-//         href="/register"
-//         className="inline-flex items-center gap-2 font-bold no-underline whitespace-nowrap transition-transform duration-150"
-//         style={{
-//           background: "var(--rv-white)",
-//           color: "var(--rv-accent)",
-//           padding: "1rem 2.25rem",
-//           borderRadius: 2,
-//           fontSize: "0.9375rem",
-//         }}
-//         onMouseEnter={(e) =>
-//           (e.currentTarget.style.transform = "translateY(-2px)")
-//         }
-//         onMouseLeave={(e) =>
-//           (e.currentTarget.style.transform = "translateY(0)")
-//         }
-//       >
-//         Build your resume free →
-//       </Link>
-//     </section>
-//   );
-// }
-
-// export function Footer() {
-//   return (
-//     <footer
-//       className="flex items-center justify-between"
-//       style={{
-//         padding: "3rem 4rem",
-//         borderTop: "1px solid var(--rv-border)",
-//       }}
-//     >
-//       <Link
-//         href="/"
-//         className="font-serif text-2xl no-underline"
-//         style={{ color: "var(--rv-ink)", letterSpacing: "-0.02em" }}
-//       >
-//         Resume
-//         <span style={{ color: "var(--rv-accent)", fontStyle: "italic" }}>
-//           Verse
-//         </span>
-//       </Link>
-//       <p style={{ fontSize: "0.8125rem", color: "var(--rv-muted)" }}>
-//         Built with Next.js · Tailwind · OpenAI · Prisma
-//       </p>
-//     </footer>
-//   );
-// }
-
 "use client";
 
-import React from "react";
 import Link from "next/link";
+import { account, legal, nav } from "@/constants/footer";
 
 export function CTASection() {
   return (
-    <section
-      style={{
-        padding: "8rem 4rem",
-        background: "var(--rv-accent)",
-        display: "grid",
-        gridTemplateColumns: "1fr auto",
-        alignItems: "center",
-        gap: "4rem",
-      }}
-    >
-      <h2
-        className="font-serif"
-        style={{
-          fontSize: "clamp(2.5rem, 4vw, 4rem)",
-          color: "var(--rv-white)",
-          lineHeight: 1.1,
-          letterSpacing: "-0.03em",
-        }}
-      >
+    <section className="px-16 py-32 bg-rv-accent items-center flex justify-between ">
+      <h2 className="font-serif tracking-tight text-rv-white text-7xl">
         Ready to land your
         <br />
-        <em style={{ fontStyle: "italic", color: "rgba(255,255,255,0.6)" }}>
-          next interview?
-        </em>
+        <em className="italic text-[rgba(255,255,255,0.6)]">next interview?</em>
       </h2>
 
       <Link
         href="/register"
-        className="inline-flex items-center gap-2 font-bold no-underline whitespace-nowrap transition-transform duration-150"
-        style={{
-          background: "var(--rv-white)",
-          color: "var(--rv-accent)",
-          padding: "1rem 2.25rem",
-          borderRadius: 2,
-          fontSize: "0.9375rem",
-        }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.transform = "translateY(-2px)")
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.transform = "translateY(0)")
-        }
+        className="inline-flex items-center gap-2 font-bold transition-transform duration-150 bg-rv-white text-rv-accent px-9 py-4 rounded text-base hover:-translate-y-0.5"
       >
         Build your resume free →
       </Link>
@@ -136,88 +23,34 @@ export function CTASection() {
 }
 
 export function Footer() {
-  const nav = [
-    { label: "Features", href: "/#features" },
-    { label: "Templates", href: "/#templates" },
-    { label: "How it works", href: "/#how" },
-    { label: "Pricing", href: "/pricing" },
-  ];
-  const legal = [
-    { label: "Privacy Policy", href: "/privacy" },
-    { label: "Terms of Service", href: "/terms" },
-  ];
-  const linkStyle: React.CSSProperties = {
-    fontSize: "0.8rem",
-    color: "var(--rv-muted)",
-    textDecoration: "none",
-    transition: "color 0.15s",
-  };
-
   return (
-    <footer
-      style={{ borderTop: "1px solid var(--rv-border)", padding: "3rem 4rem" }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: "2rem",
-          flexWrap: "wrap",
-          marginBottom: "2.5rem",
-        }}
-      >
+    <footer className="border-t border-rv-border px-16 py-12">
+      <div className="flex items-start justify-between gap-8 mb-10">
         {/* Brand */}
         <div>
           <Link
             href="/"
-            className="font-serif text-2xl no-underline"
-            style={{ color: "var(--rv-ink)", letterSpacing: "-0.02em" }}
+            className="font-serif text-4xl no-underline text-rv-ink tracking-tight"
           >
             Resume
-            <span style={{ color: "var(--rv-accent)", fontStyle: "italic" }}>
-              Verse
-            </span>
+            <span className="text-rv-accent italic">Verse</span>
           </Link>
-          <p
-            style={{
-              fontSize: "0.78rem",
-              color: "var(--rv-muted)",
-              marginTop: "0.5rem",
-              maxWidth: 220,
-              lineHeight: 1.55,
-            }}
-          >
+          <p className="text-base text-rv-muted mt-2 max-w-55">
             AI-powered resume builder that helps you land more interviews.
           </p>
         </div>
 
         {/* Product nav */}
         <div>
-          <p
-            style={{
-              fontSize: "0.65rem",
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--rv-muted)",
-              marginBottom: "0.75rem",
-            }}
-          >
+          <p className="text-base font-bold tracking-widest uppercase text-rv-muted mb-3">
             Product
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="flex flex-col gap-2">
             {nav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                style={linkStyle}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "var(--rv-ink)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = "var(--rv-muted)")
-                }
+                className="text-rv-muted text-sm hover:text-rv-ink transition-colors duration-150"
               >
                 {item.label}
               </Link>
@@ -227,35 +60,15 @@ export function Footer() {
 
         {/* Account */}
         <div>
-          <p
-            style={{
-              fontSize: "0.65rem",
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--rv-muted)",
-              marginBottom: "0.75rem",
-            }}
-          >
+          <p className="text-base font-bold tracking-widest uppercase text-rv-muted mb-3">
             Account
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {[
-              { label: "Sign up free", href: "/register" },
-              { label: "Sign in", href: "/login" },
-              { label: "Dashboard", href: "/dashboard" },
-              { label: "Settings", href: "/dashboard/settings" },
-            ].map((item) => (
+          <div className="flex flex-col gap-2">
+            {account.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                style={linkStyle}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "var(--rv-ink)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = "var(--rv-muted)")
-                }
+                className="text-rv-muted text-sm hover:text-rv-ink transition-colors duration-150"
               >
                 {item.label}
               </Link>
@@ -265,30 +78,15 @@ export function Footer() {
 
         {/* Legal */}
         <div>
-          <p
-            style={{
-              fontSize: "0.65rem",
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--rv-muted)",
-              marginBottom: "0.75rem",
-            }}
-          >
+          <p className="text-base font-bold tracking-widest uppercase text-rv-muted mb-3">
             Legal
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="flex flex-col gap-2">
             {legal.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                style={linkStyle}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "var(--rv-ink)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = "var(--rv-muted)")
-                }
+                className="text-rv-muted text-sm hover:text-rv-ink transition-colors duration-150"
               >
                 {item.label}
               </Link>
@@ -298,23 +96,9 @@ export function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div
-        style={{
-          borderTop: "1px solid var(--rv-border)",
-          paddingTop: "1.5rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "0.75rem",
-        }}
-      >
-        <p style={{ fontSize: "0.75rem", color: "var(--rv-muted)" }}>
-          © {new Date().getFullYear()} ResumeVerse. All rights reserved.
-        </p>
-        <p style={{ fontSize: "0.75rem", color: "var(--rv-muted)" }}>
-          Built with Next.js · Tailwind · OpenAI · Prisma
-        </p>
+      <div className="border-t border-rv-border pt-6 flex items-center justify-between text-sm text-rv-muted">
+        <p>© {new Date().getFullYear()} ResumeVerse. All rights reserved.</p>
+        <p>Built with ❤️ | TJ</p>
       </div>
     </footer>
   );

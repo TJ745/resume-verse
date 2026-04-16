@@ -26,14 +26,7 @@ export default function PricingSection() {
         </div>
 
         {/* Plan cards */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "1.5rem",
-            alignItems: "start",
-          }}
-        >
+        <div className="grid grid-cols-2 gap-6 items-start">
           {plans.map((plan) => {
             const isPro = plan.id === "pro";
             return (
@@ -52,66 +45,27 @@ export default function PricingSection() {
               >
                 {/* Badge */}
                 {plan.badge && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 16,
-                      right: 16,
-                      fontSize: "0.6rem",
-                      fontWeight: 800,
-                      letterSpacing: "0.1em",
-                      textTransform: "uppercase",
-                      padding: "3px 10px",
-                      background: "var(--rv-accent)",
-                      color: "#fff",
-                      borderRadius: 99,
-                    }}
-                  >
+                  <div className="absolute top-4 right-4 text-xs font-extrabold tracking-widest uppercase px-2.5 py-1 rounded-full bg-rv-accent text-white">
                     {plan.badge}
                   </div>
                 )}
 
                 {/* Plan name */}
                 <p
-                  style={{
-                    fontSize: "0.7rem",
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: isPro ? "rgba(255,255,255,0.5)" : "var(--rv-muted)",
-                    marginBottom: "0.5rem",
-                  }}
+                  className={`text-xs font-bold tracking-widest uppercase mb-2 ${isPro ? "text-[rgba(255,255,255,0.5)]" : "text-rv-muted"}`}
                 >
                   {plan.name}
                 </p>
 
                 {/* Price */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    gap: 4,
-                    marginBottom: "0.4rem",
-                  }}
-                >
+                <div className="flex items-baseline gap-1 mb-2">
                   <span
-                    className="font-serif"
-                    style={{
-                      fontSize: "3rem",
-                      fontWeight: 700,
-                      color: isPro ? "#fff" : "var(--rv-ink)",
-                      lineHeight: 1,
-                    }}
+                    className={`font-serif text-5xl font-bold ${isPro ? "text-white" : "text-rv-ink"}`}
                   >
                     {plan.price}
                   </span>
                   <span
-                    style={{
-                      fontSize: "0.8rem",
-                      color: isPro
-                        ? "rgba(255,255,255,0.45)"
-                        : "var(--rv-muted)",
-                    }}
+                    className={`text-sm font-medium ${isPro ? "text-[rgba(255,255,255,0.45)]" : "text-rv-muted"}`}
                   >
                     /{plan.period}
                   </span>
@@ -119,12 +73,7 @@ export default function PricingSection() {
 
                 {/* Desc */}
                 <p
-                  style={{
-                    fontSize: "0.82rem",
-                    color: isPro ? "rgba(255,255,255,0.65)" : "var(--rv-muted)",
-                    lineHeight: 1.55,
-                    marginBottom: "1.75rem",
-                  }}
+                  className={`text-sm mb-7 ${isPro ? "text-[rgba(255,255,255,0.65)]" : "text-rv-muted"}`}
                 >
                   {plan.desc}
                 </p>
@@ -135,19 +84,7 @@ export default function PricingSection() {
                 ) : (
                   <Link
                     href={plan.ctaHref}
-                    style={{
-                      display: "block",
-                      textAlign: "center",
-                      padding: "0.65rem 1rem",
-                      borderRadius: 2,
-                      fontWeight: 700,
-                      fontSize: "0.85rem",
-                      textDecoration: "none",
-                      marginBottom: "1.75rem",
-                      background: "transparent",
-                      color: "var(--rv-ink)",
-                      border: "2px solid var(--rv-border)",
-                    }}
+                    className="block text-center px-4 py-2.5 rounded font-bold text-sm mb-7 bg-transparent border border-rv-border text-rv-ink"
                   >
                     {plan.cta}
                   </Link>
@@ -155,35 +92,15 @@ export default function PricingSection() {
 
                 {/* Divider */}
                 <div
-                  style={{
-                    borderTop: `1px solid ${isPro ? "rgba(255,255,255,0.1)" : "var(--rv-border)"}`,
-                    marginBottom: "1.25rem",
-                  }}
+                  className={`mb-5 border-t ${isPro ? "border-[rgba(255,255,255,0.1)]" : "border-rv-border"}`}
                 />
 
                 {/* Features */}
-                <ul
-                  style={{
-                    listStyle: "none",
-                    padding: 0,
-                    margin: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 9,
-                  }}
-                >
+                <ul className="flex flex-col gap-2">
                   {plan.features.map((f, i) => (
                     <li
                       key={i}
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 8,
-                        fontSize: "0.8rem",
-                        color: isPro
-                          ? "rgba(255,255,255,0.8)"
-                          : "var(--rv-ink)",
-                      }}
+                      className={`flex items-start gap-2 text-sm ${isPro ? "text-[rgba(255,255,255,0.8)]" : "text-rv-ink"}`}
                     >
                       <CheckIcon pro={isPro} />
                       {f}
@@ -192,14 +109,7 @@ export default function PricingSection() {
                   {plan.unavailable.map((f, i) => (
                     <li
                       key={`x-${i}`}
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 8,
-                        fontSize: "0.8rem",
-                        color: "var(--rv-muted)",
-                        opacity: 0.5,
-                      }}
+                      className="flex items-start gap-2 text-sm text-rv-muted"
                     >
                       <XIcon />
                       {f}
@@ -225,7 +135,7 @@ function CheckIcon({ pro }: { pro: boolean }) {
   return (
     <svg
       viewBox="0 0 16 16"
-      className={`w-3.5 h-3.5 stroke-2 ${pro ? "stroke-rv-accent" : "stroke-rv-accent"} mt-0.5 fill-none shrink-0`}
+      className={`w-4 h-4 stroke-2 mt-0.5 fill-none shrink-0 ${pro ? "stroke-rv-accent" : "stroke-rv-accent"} `}
     >
       <path d="M2.5 8l4 4 7-8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -235,7 +145,7 @@ function XIcon() {
   return (
     <svg
       viewBox="0 0 16 16"
-      className="w-3.5 h-3.5 stroke-2 stroke-rv-muted mt-0.5 fill-none shrink-0"
+      className="w-4 h-4 stroke-2 stroke-rv-muted mt-0.5 fill-none shrink-0"
     >
       <path d="M4 4l8 8M12 4l-8 8" strokeLinecap="round" />
     </svg>
@@ -267,7 +177,7 @@ function ProCTAButton({ label }: { label: string }) {
     <button
       onClick={handleClick}
       disabled={loading}
-      className={`block w-full text-center px-4 py-2.5 mb-7 rounded font-bold text-sm text-white border border-rv-accent ${loading ? "bg-[rgba(200,75,47,0.7)] cursor-not-allowed" : "bg-rv-accent  cursor-pointer"}`}
+      className={`block w-full text-center px-4 py-2.5 mb-7 rounded font-bold text-sm text-white border border-rv-accent ${loading ? "bg-[rgba(200,75,47,0.7)] cursor-not-allowed" : "bg-rv-accent cursor-pointer"}`}
     >
       {loading ? "Redirecting…" : label}
     </button>

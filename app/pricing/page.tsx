@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
   return (
-    <div style={{ minHeight: "100vh", background: "var(--rv-paper)" }}>
+    <div className="min-h-screen bg-rv-paper">
       <Navbar />
-      <div style={{ paddingTop: "80px" }}>
+      <div className="pt-8">
         <PricingSection />
       </div>
       <Footer />
