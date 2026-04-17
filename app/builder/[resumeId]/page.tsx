@@ -48,7 +48,7 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-rv-paper text-rv-ink">
+    <div className="max-h-screen bg-rv-paper text-rv-ink ">
       <BuilderClient
         resume={resumeData}
         isPublic={resume.isPublic}

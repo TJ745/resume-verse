@@ -39,6 +39,7 @@ interface ContactItem {
 function getContactItems(info: PersonalInfo | null): ContactItem[] {
   if (!info) return [];
   const items: ContactItem[] = [];
+
   if (info.email) items.push({ icon: "email", text: info.email });
   if (info.phone) items.push({ icon: "phone", text: info.phone });
   if (info.showAddress && info.address)
@@ -47,6 +48,7 @@ function getContactItems(info: PersonalInfo | null): ContactItem[] {
   if (info.github) items.push({ icon: "github", text: info.github });
   if (info.showWebsite && info.website)
     items.push({ icon: "website", text: info.website });
+
   return items;
 }
 
@@ -81,54 +83,35 @@ function PrintContactLine({ info }: { info: PersonalInfo | null }) {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "2px 10px",
-        marginTop: 3,
-      }}
-    >
+    <div className="mt-1 flex flex-wrap gap-x-2.5 gap-y-0.5">
       {items.map((item, i) => (
         <span
           key={i}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 3,
-            fontSize: 7,
-            color: "#8a8478",
-          }}
+          className="inline-flex items-center gap-1 text-[7px] text-[#8a8478]"
         >
           {item.icon === "linkedin" ? (
             <svg
               viewBox="0 0 16 16"
-              style={{ width: 7, height: 7, fill: "#8a8478", flexShrink: 0 }}
+              className="h-2 w-2 shrink-0 fill-[#8a8478]"
             >
               <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h11A1.5 1.5 0 0 1 15 2.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 13.5v-11zM4 6H2.5v7H4V6zm-.75-1.25a.875.875 0 1 0 1.75 0 .875.875 0 0 0-1.75 0zM13.5 13h-1.5v-3.5c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5V13H7.5V6H9v.9C9.5 6.3 10.3 6 11 6c1.38 0 2.5 1.12 2.5 2.5V13z" />
             </svg>
           ) : item.icon === "github" ? (
             <svg
               viewBox="0 0 16 16"
-              style={{ width: 7, height: 7, fill: "#8a8478", flexShrink: 0 }}
+              className="h-2 w-2 shrink-0 fill-[#8a8478]"
             >
               <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.34C3.73 14.36 3.27 13 3.27 13c-.36-.92-.88-1.16-.88-1.16-.72-.49.05-.48.05-.48.8.06 1.22.82 1.22.82.71 1.21 1.87.86 2.33.66.07-.52.28-.86.5-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.67 7.67 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.19c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
             </svg>
           ) : (
             <svg
               viewBox="0 0 16 16"
-              style={{
-                width: 7,
-                height: 7,
-                stroke: "#8a8478",
-                fill: "none",
-                strokeWidth: 1.5,
-                flexShrink: 0,
-              }}
+              className="h-2 w-2 shrink-0 fill-none stroke-[#8a8478] stroke-[1.5]"
             >
               {iconPath[item.icon]}
             </svg>
           )}
+
           {item.text}
         </span>
       ))}
@@ -141,144 +124,82 @@ export default function PrintResume({
   isPro = false,
 }: PrintResumeProps) {
   const sorted = [...resume.sections].sort((a, b) => a.order - b.order);
+
   const accent =
     COLOR_SCHEMES.find((s) => s.id === resume.colorScheme)?.accent ?? "#c84b2f";
 
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{getName(resume)}</title>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap"
-          rel="stylesheet"
-        />
-        <style>{`
-          *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-          html, body {
-            width: 210mm;
-            min-height: 297mm;
-            font-family: 'DM Sans', sans-serif;
-            background: #ffffff;
-            color: #0f0e0d;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          @page { size: A4; margin: 0; }
-          @media print { html, body { width: 210mm; min-height: 297mm; } }
-          .serif { font-family: 'Instrument Serif', serif; }
-          .page { width: 210mm; min-height: 297mm; padding: 14mm 16mm; }
-        `}</style>
-      </head>
-      <body>
-        <div className="page">
-          {resume.template === "classic" && (
-            <ClassicLayout resume={resume} sections={sorted} accent={accent} />
-          )}
-          {resume.template === "minimal" && (
-            <MinimalLayout resume={resume} sections={sorted} accent={accent} />
-          )}
-          {resume.template !== "classic" && resume.template !== "minimal" && (
-            <ModernLayout resume={resume} sections={sorted} accent={accent} />
-          )}
-        </div>
-        {!isPro && (
-          <div
-            style={{
-              width: "210mm",
-              padding: "4px 16mm",
-              background: "#f5f3ef",
-              borderTop: "1px solid #e8e4dc",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 5,
-            }}
-          >
-            <span
-              style={{
-                fontSize: 6.5,
-                color: "#8a8478",
-                fontFamily: "DM Sans, sans-serif",
-                letterSpacing: "0.04em",
-              }}
-            >
-              Created with{" "}
-              <strong
-                style={{
-                  color: "#c84b2f",
-                  fontWeight: 700,
-                  fontFamily: "Instrument Serif, serif",
-                  fontStyle: "italic",
-                }}
-              >
-                ResumeVerse
-              </strong>{" "}
-              — resumeverse.com · Upgrade to Pro to remove this watermark
-            </span>
-          </div>
+    <div
+      className="w-[210mm] min-h-[297mm] bg-white text-[#0f0e0d] font-sans"
+      style={{ ["--accent" as string]: accent }}
+    >
+      <div className="px-[16mm] py-[14mm]">
+        {resume.template === "classic" && (
+          <ClassicLayout resume={resume} sections={sorted} />
         )}
-      </body>
-    </html>
+        {resume.template === "minimal" && (
+          <MinimalLayout resume={resume} sections={sorted} />
+        )}
+        {resume.template === "modern" && (
+          <ModernLayout resume={resume} sections={sorted} />
+        )}
+      </div>
+
+      {!isPro && (
+        <div className="w-full border-t border-[#e8e4dc] bg-[#f5f3ef] py-1 text-center text-[6.5px] tracking-wide text-[#8a8478]">
+          Created with{" "}
+          <span className="font-serif italic text-[#c84b2f]">ResumeVerse</span>{" "}
+          — Upgrade to Pro to remove watermark
+        </div>
+      )}
+    </div>
   );
 }
 
-// ── Shared section renderer ───────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Section Renderer (Tailwind)
+// ─────────────────────────────────────────────────────────────
 
-function renderSection(
-  section: ResumeSection,
-  template: string,
-  accent: string,
-) {
-  const inkColor = "#0f0e0d";
-  const mutedColor = "#8a8478";
-  const bodyColor = "#3a3835";
+function SectionHeading({
+  title,
+  template,
+}: {
+  title: string;
+  template: string;
+}) {
+  if (template === "classic") {
+    return (
+      <div className="mb-2 border-b-2 border-[#0f0e0d] pb-1 text-[7px] font-bold uppercase tracking-widest text-[#0f0e0d]">
+        {title}
+      </div>
+    );
+  }
 
-  const headingStyle: React.CSSProperties =
-    template === "classic"
-      ? {
-          fontSize: 7,
-          fontWeight: 700,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: inkColor,
-          borderBottom: `2px solid ${inkColor}`,
-          paddingBottom: 2,
-          marginBottom: 6,
-        }
-      : template === "minimal"
-        ? {
-            fontSize: 7,
-            fontWeight: 700,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: mutedColor,
-            marginBottom: 6,
-          }
-        : {
-            fontSize: 7,
-            fontWeight: 700,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: accent,
-            borderBottom: `1px solid ${accent}`,
-            paddingBottom: 2,
-            marginBottom: 6,
-          };
+  if (template === "minimal") {
+    return (
+      <div className="mb-2 text-[7px] font-bold uppercase tracking-[0.12em] text-[#8a8478]">
+        {title}
+      </div>
+    );
+  }
 
-  const mb = { marginBottom: 14 };
+  return (
+    <div className="mb-2 border-b border-accent pb-1 text-[7px] font-bold uppercase tracking-widest text-accent">
+      {title}
+    </div>
+  );
+}
 
+function renderSection(section: ResumeSection, template: string) {
   switch (section.type) {
     case "summary": {
       const c = section.content as SummaryContent;
       if (!c.text) return null;
+
       return (
-        <div style={mb}>
-          <div style={headingStyle}>{section.title}</div>
-          <p style={{ fontSize: 8.5, lineHeight: 1.6, color: bodyColor }}>
-            {c.text}
-          </p>
+        <div className="mb-3.5">
+          <SectionHeading title={section.title} template={template} />
+          <p className="text-[8.5px] leading-[1.6] text-[#3a3835]">{c.text}</p>
         </div>
       );
     }
@@ -286,22 +207,19 @@ function renderSection(
     case "experience": {
       const items = section.content as ExperienceItem[];
       if (!items.length) return null;
+
       return (
-        <div style={mb}>
-          <div style={headingStyle}>{section.title}</div>
+        <div className="mb-3.5">
+          <SectionHeading title={section.title} template={template} />
+
           {items.map((exp) => (
-            <div key={exp.id} style={{ marginBottom: 9 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "baseline",
-                }}
-              >
-                <span style={{ fontSize: 9, fontWeight: 600, color: inkColor }}>
+            <div key={exp.id} className="mb-2.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[9px] font-semibold text-[#0f0e0d]">
                   {exp.role}
                 </span>
-                <span style={{ fontSize: 7.5, color: mutedColor }}>
+
+                <span className="text-[7.5px] text-[#8a8478]">
                   {exp.startDate}
                   {exp.startDate &&
                     (exp.current
@@ -311,28 +229,18 @@ function renderSection(
                         : "")}
                 </span>
               </div>
-              <div style={{ fontSize: 8, color: mutedColor, marginBottom: 3 }}>
+
+              <div className="mb-0.5 text-[8px] text-[#8a8478]">
                 {exp.company}
                 {exp.location ? ` · ${exp.location}` : ""}
               </div>
+
               {exp.bullets.filter(Boolean).map((b, i) => (
-                <div
-                  key={i}
-                  style={{ display: "flex", gap: 5, marginBottom: 2 }}
-                >
-                  <span
-                    style={{
-                      color: accent,
-                      fontSize: 7,
-                      flexShrink: 0,
-                      paddingTop: 1,
-                    }}
-                  >
+                <div key={i} className="mb-0.5 flex gap-2">
+                  <span className="shrink-0 pt-1 text-[7px] text-accent">
                     •
                   </span>
-                  <span
-                    style={{ fontSize: 8, lineHeight: 1.55, color: bodyColor }}
-                  >
+                  <span className="text-[8px] leading-[1.55] text-[#3a3835]">
                     {b}
                   </span>
                 </div>
@@ -346,27 +254,24 @@ function renderSection(
     case "education": {
       const items = section.content as EducationItem[];
       if (!items.length) return null;
+
       return (
-        <div style={mb}>
-          <div style={headingStyle}>{section.title}</div>
+        <div className="mb-4">
+          <SectionHeading title={section.title} template={template} />
           {items.map((edu) => (
-            <div key={edu.id} style={{ marginBottom: 7 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "baseline",
-                }}
-              >
-                <span style={{ fontSize: 9, fontWeight: 600, color: inkColor }}>
+            <div key={edu.id} className="mb-2">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[9px] font-semibold text-[#0f0e0d]">
                   {edu.institution}
                 </span>
-                <span style={{ fontSize: 7.5, color: mutedColor }}>
+
+                <span className="text-[7.5px] text-[#8a8478]">
                   {edu.startDate}
                   {edu.endDate ? ` – ${edu.endDate}` : ""}
                 </span>
               </div>
-              <div style={{ fontSize: 8, color: mutedColor }}>
+
+              <div className="text-[8px] text-[#8a8478]">
                 {edu.degree}
                 {edu.field ? ` in ${edu.field}` : ""}
                 {edu.gpa ? ` · GPA: ${edu.gpa}` : ""}
@@ -380,19 +285,19 @@ function renderSection(
     case "skills": {
       const c = section.content as SkillsContent;
       if (!c.categories?.length) return null;
+
       return (
-        <div style={mb}>
-          <div style={headingStyle}>{section.title}</div>
+        <div className="mb-4">
+          <SectionHeading title={section.title} template={template} />
           {c.categories.map((cat) => (
-            <div key={cat.id} style={{ marginBottom: 4 }}>
+            <div key={cat.id} className="mb-1">
               {cat.name && (
-                <span style={{ fontSize: 8, fontWeight: 600, color: inkColor }}>
+                <span className="text-[8px] font-semibold text-[#0f0e0d]">
                   {cat.name}:{" "}
                 </span>
               )}
-              <span style={{ fontSize: 8, color: bodyColor }}>
-                {cat.skills}
-              </span>
+
+              <span className="text-[8px] text-[#3a3835]">{cat.skills}</span>
             </div>
           ))}
         </div>
@@ -402,36 +307,26 @@ function renderSection(
     case "projects": {
       const items = section.content as ProjectItem[];
       if (!items.length) return null;
+
       return (
-        <div style={mb}>
-          <div style={headingStyle}>{section.title}</div>
+        <div className="mb-4">
+          <SectionHeading title={section.title} template={template} />
           {items.map((proj) => (
-            <div key={proj.id} style={{ marginBottom: 7 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "baseline",
-                }}
-              >
-                <span style={{ fontSize: 9, fontWeight: 600, color: inkColor }}>
+            <div key={proj.id} className="mb-2">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[9px] font-semibold text-[#0f0e0d]">
                   {proj.name}
                 </span>
+
                 {proj.technologies && (
-                  <span style={{ fontSize: 7.5, color: mutedColor }}>
+                  <span className="text-[7.5px] text-[#8a8478]">
                     {proj.technologies}
                   </span>
                 )}
               </div>
+
               {proj.description && (
-                <p
-                  style={{
-                    fontSize: 8,
-                    lineHeight: 1.55,
-                    color: bodyColor,
-                    marginTop: 2,
-                  }}
-                >
+                <p className="mt-1 text-[8px] leading-[1.55] text-[#3a3835]">
                   {proj.description}
                 </p>
               )}
@@ -444,34 +339,30 @@ function renderSection(
     case "certifications": {
       const items = section.content as CertificationItem[];
       if (!items.length) return null;
+
       return (
-        <div style={mb}>
-          <div style={headingStyle}>{section.title}</div>
+        <div className="mb-4">
+          <SectionHeading title={section.title} template={template} />
           {items.map((cert) => (
             <div
               key={cert.id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: 5,
-              }}
+              className="mb-2 flex items-baseline justify-between"
             >
               <div>
-                <span style={{ fontSize: 9, fontWeight: 600, color: inkColor }}>
+                <span className="text-[9px] font-semibold text-[#0f0e0d]">
                   {cert.name}
                 </span>
+
                 {cert.issuer && (
-                  <span style={{ fontSize: 8, color: mutedColor }}>
+                  <span className="text-[8px] text-[#8a8478]">
                     {" "}
                     · {cert.issuer}
                   </span>
                 )}
               </div>
+
               {cert.date && (
-                <span style={{ fontSize: 7.5, color: mutedColor }}>
-                  {cert.date}
-                </span>
+                <span className="text-[7.5px] text-[#8a8478]">{cert.date}</span>
               )}
             </div>
           ))}
@@ -482,13 +373,14 @@ function renderSection(
     case "languages": {
       const items = section.content as LanguageItem[];
       if (!items.length) return null;
+
       return (
-        <div style={mb}>
-          <div style={headingStyle}>{section.title}</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 16px" }}>
+        <div className="mb-4">
+          <SectionHeading title={section.title} template={template} />
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
             {items.map((lang) => (
-              <span key={lang.id} style={{ fontSize: 8, color: bodyColor }}>
-                <span style={{ fontWeight: 600, color: inkColor }}>
+              <span key={lang.id} className="text-[8px] text-[#3a3835]">
+                <span className="font-semibold text-[#0f0e0d]">
                   {lang.language}
                 </span>
                 {lang.proficiency ? ` · ${lang.proficiency}` : ""}
@@ -502,39 +394,27 @@ function renderSection(
     case "awards": {
       const items = section.content as AwardItem[];
       if (!items.length) return null;
+
       return (
-        <div style={mb}>
-          <div style={headingStyle}>{section.title}</div>
+        <div className="mb-4">
+          <SectionHeading title={section.title} template={template} />
           {items.map((award) => (
-            <div key={award.id} style={{ marginBottom: 6 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "baseline",
-                }}
-              >
-                <span style={{ fontSize: 9, fontWeight: 600, color: inkColor }}>
+            <div key={award.id} className="mb-2">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[9px] font-semibold text-[#0f0e0d]">
                   {award.title}
                 </span>
-                <span style={{ fontSize: 7.5, color: mutedColor }}>
+                <span className="text-[7.5px] text-[#8a8478]">
                   {award.date}
                 </span>
               </div>
+
               {award.issuer && (
-                <div style={{ fontSize: 8, color: mutedColor }}>
-                  {award.issuer}
-                </div>
+                <div className="text-[8px] text-[#8a8478]">{award.issuer}</div>
               )}
+
               {award.description && (
-                <p
-                  style={{
-                    fontSize: 8,
-                    lineHeight: 1.55,
-                    color: bodyColor,
-                    marginTop: 2,
-                  }}
-                >
+                <p className="mt-1 text-[8px] leading-[1.55] text-[#3a3835]">
                   {award.description}
                 </p>
               )}
@@ -547,22 +427,18 @@ function renderSection(
     case "volunteer": {
       const items = section.content as VolunteerItem[];
       if (!items.length) return null;
+
       return (
-        <div style={mb}>
-          <div style={headingStyle}>{section.title}</div>
+        <div className="mb-3.5">
+          <SectionHeading title={section.title} template={template} />
           {items.map((vol) => (
-            <div key={vol.id} style={{ marginBottom: 7 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "baseline",
-                }}
-              >
-                <span style={{ fontSize: 9, fontWeight: 600, color: inkColor }}>
+            <div key={vol.id} className="mb-2">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[9px] font-semibold text-[#0f0e0d]">
                   {vol.role} @ {vol.organization}
                 </span>
-                <span style={{ fontSize: 7.5, color: mutedColor }}>
+
+                <span className="text-[7.5px] text-[#8a8478]">
                   {vol.startDate}
                   {vol.startDate &&
                     (vol.current
@@ -572,15 +448,9 @@ function renderSection(
                         : "")}
                 </span>
               </div>
+
               {vol.description && (
-                <p
-                  style={{
-                    fontSize: 8,
-                    lineHeight: 1.55,
-                    color: bodyColor,
-                    marginTop: 2,
-                  }}
-                >
+                <p className="mt-0.2 text-[8px] leading-[1.55] text-[#3a3835]">
                   {vol.description}
                 </p>
               )}
@@ -595,128 +465,91 @@ function renderSection(
   }
 }
 
-// ── Shared layout props ───────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Layout Props
+// ─────────────────────────────────────────────────────────────
 
 interface LayoutProps {
   resume: ResumeData;
   sections: ResumeSection[];
-  accent: string;
 }
 
-// ── Modern layout ─────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Modern Layout
+// ─────────────────────────────────────────────────────────────
 
-function ModernLayout({ resume, sections, accent }: LayoutProps) {
+function ModernLayout({ resume, sections }: LayoutProps) {
   return (
     <>
-      <div
-        style={{
-          height: 4,
-          background: accent,
-          margin: "-14mm -16mm 14px",
-          width: "calc(100% + 32mm)",
-        }}
-      />
-      <div style={{ marginBottom: 16 }}>
+      <div className="h-1 w-full bg-accent mb-4 " />
+
+      <div className="mb-4 relative">
         {resume.personalInfo?.showPhoto && resume.personalInfo?.photoUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={resume.personalInfo.photoUrl}
             alt="Profile"
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              objectFit: "cover",
-              float: "right",
-              marginLeft: 10,
-            }}
+            className="float-right ml-3 h-12 w-12 rounded-full object-cover"
           />
         )}
-        <h1
-          className="serif"
-          style={{
-            fontSize: 26,
-            color: "#0f0e0d",
-            lineHeight: 1.1,
-            letterSpacing: "-0.02em",
-            marginBottom: 3,
-          }}
-        >
+
+        <h1 className="font-serif mb-1 text-3xl leading-tight tracking-tight ">
           {getName(resume)}
         </h1>
+
         {getJobTitle(resume) && (
-          <p
-            style={{
-              fontSize: 8,
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              color: accent,
-              marginBottom: 2,
-            }}
-          >
+          <p className="text-xs uppercase tracking-widest text-accent">
             {getJobTitle(resume)}
           </p>
         )}
+
         <PrintContactLine info={resume.personalInfo} />
       </div>
+
       {sections.map((s) => (
-        <div key={s.id}>{renderSection(s, "modern", accent)}</div>
+        <div key={s.id}>{renderSection(s, "modern")}</div>
       ))}
     </>
   );
 }
 
-// ── Classic layout ────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Classic Layout
+// ─────────────────────────────────────────────────────────────
 
-function ClassicLayout({ resume, sections, accent }: LayoutProps) {
+function ClassicLayout({ resume, sections }: LayoutProps) {
   return (
     <>
-      <div
-        style={{
-          textAlign: "center",
-          marginBottom: 14,
-          paddingBottom: 10,
-          borderBottom: "2px solid #0f0e0d",
-        }}
-      >
-        <h1
-          className="serif"
-          style={{
-            fontSize: 26,
-            color: "#0f0e0d",
-            letterSpacing: "-0.02em",
-            marginBottom: 3,
-          }}
-        >
+      <div className="mb-4 border-b-2 border-accent pb-3 text-center">
+        <h1 className="font-serif mb-1 text-[26px] tracking-tight ">
           {getName(resume)}
         </h1>
+
         {getJobTitle(resume) && (
-          <p
-            style={{
-              fontSize: 8,
-              color: "#8a8478",
-              letterSpacing: "0.06em",
-              marginBottom: 2,
-            }}
-          >
+          <p className="text-[8px] tracking-wider text-[#8a8478]">
             {getJobTitle(resume)}
           </p>
         )}
+
         <PrintContactLine info={resume.personalInfo} />
       </div>
+
       {sections.map((s) => (
-        <div key={s.id}>{renderSection(s, "classic", accent)}</div>
+        <div key={s.id}>{renderSection(s, "classic")}</div>
       ))}
     </>
   );
 }
 
-// ── Minimal layout ────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Minimal Layout
+// ─────────────────────────────────────────────────────────────
 
-function MinimalLayout({ resume, sections, accent }: LayoutProps) {
+function MinimalLayout({ resume, sections }: LayoutProps) {
   const leftSections = sections.filter((s) =>
     ["skills", "certifications", "education", "languages"].includes(s.type),
   );
+
   const rightSections = sections.filter(
     (s) =>
       !["skills", "certifications", "education", "languages"].includes(s.type),
@@ -724,35 +557,30 @@ function MinimalLayout({ resume, sections, accent }: LayoutProps) {
 
   return (
     <>
-      <div style={{ marginBottom: 14 }}>
-        <h1
-          className="serif"
-          style={{
-            fontSize: 24,
-            color: "#0f0e0d",
-            letterSpacing: "-0.02em",
-            marginBottom: 2,
-          }}
-        >
+      <div className="mb-4">
+        <h1 className="font-serif text-[24px] tracking-tight ">
           {getName(resume)}
         </h1>
+
         {getJobTitle(resume) && (
-          <p style={{ fontSize: 8.5, color: "#8a8478", marginBottom: 2 }}>
-            {getJobTitle(resume)}
-          </p>
+          <p className="text-[8.5px] text-[#8a8478]">{getJobTitle(resume)}</p>
         )}
+
         <PrintContactLine info={resume.personalInfo} />
-        <div style={{ height: 1, background: "#d9d4c7" }} />
+
+        <div className="mt-2 h-px bg-[#d9d4c7]" />
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 20 }}>
+
+      <div className="grid grid-cols-[1fr_2fr] gap-5">
         <div>
           {leftSections.map((s) => (
-            <div key={s.id}>{renderSection(s, "minimal", accent)}</div>
+            <div key={s.id}>{renderSection(s, "minimal")}</div>
           ))}
         </div>
+
         <div>
           {rightSections.map((s) => (
-            <div key={s.id}>{renderSection(s, "minimal", accent)}</div>
+            <div key={s.id}>{renderSection(s, "minimal")}</div>
           ))}
         </div>
       </div>

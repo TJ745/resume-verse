@@ -28,18 +28,20 @@ export async function updateName(name: string) {
   }
 }
 
+
 export async function deleteAccount() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/login");
 
   try {
-    // Delete all resumes + sections (cascade) then the user
-    await prisma.resume.deleteMany({ where: { userId: session.user.id } });
-    await prisma.session.deleteMany({ where: { userId: session.user.id } });
-    await prisma.account.deleteMany({ where: { userId: session.user.id } });
-    await prisma.user.delete({ where: { id: session.user.id } });
+    // delete user (cascade will delete everything else)
+    await prisma.user.delete({
+      where: { id: session.user.id },
+    });
+
     return { success: true };
-  } catch {
+  } catch (err) {
+    console.log("DELETE ACCOUNT ERROR:", err);
     return { error: "Failed to delete account. Please try again." };
   }
 }
