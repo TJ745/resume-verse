@@ -7,7 +7,7 @@ import {
   ItemCard,
   Field,
   Checkbox,
-  inputStyle,
+  inputCls,
 } from "./ui";
 import type {
   ResumeSection,
@@ -33,7 +33,6 @@ export default function Step4Education({
     onSectionsChange,
   );
 
-  // ── Single source of truth: read from sections prop ──────
   const eduSection = sections.find((s) => s.type === "education");
   const awardSection = sections.find((s) => s.type === "awards");
   const volSection = sections.find((s) => s.type === "volunteer");
@@ -81,10 +80,8 @@ export default function Step4Education({
     );
   }
 
-  const inp = inputStyle;
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+    <div className="flex flex-col gap-7">
       {/* ── Education ── */}
       <div>
         <SectionHeading label="Education" />
@@ -94,7 +91,7 @@ export default function Step4Education({
             onClick={() => ensureSection("education")}
           />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          <div className="flex flex-col">
             {eduItems.map((edu) => (
               <ItemCard
                 key={edu.id}
@@ -110,10 +107,10 @@ export default function Step4Education({
                       updateEdu(edu.id, "institution", e.target.value)
                     }
                     placeholder="Massachusetts Institute of Technology"
-                    style={inp}
+                    className={inputCls}
                   />
                 </Field>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="flex gap-2">
                   <Field label="Degree">
                     <input
                       value={edu.degree}
@@ -121,7 +118,7 @@ export default function Step4Education({
                         updateEdu(edu.id, "degree", e.target.value)
                       }
                       placeholder="Bachelor of Science"
-                      style={inp}
+                      className={inputCls}
                     />
                   </Field>
                   <Field label="Field">
@@ -131,11 +128,11 @@ export default function Step4Education({
                         updateEdu(edu.id, "field", e.target.value)
                       }
                       placeholder="Computer Science"
-                      style={inp}
+                      className={inputCls}
                     />
                   </Field>
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="flex gap-2">
                   <Field label="Start">
                     <input
                       value={edu.startDate}
@@ -143,7 +140,7 @@ export default function Step4Education({
                         updateEdu(edu.id, "startDate", e.target.value)
                       }
                       placeholder="Sep 2018"
-                      style={inp}
+                      className={`${inputCls} w-full`}
                     />
                   </Field>
                   <Field label="End">
@@ -153,7 +150,7 @@ export default function Step4Education({
                         updateEdu(edu.id, "endDate", e.target.value)
                       }
                       placeholder="Jun 2022"
-                      style={inp}
+                      className={`${inputCls} w-full`}
                     />
                   </Field>
                   <Field label="GPA" optional>
@@ -161,7 +158,7 @@ export default function Step4Education({
                       value={edu.gpa ?? ""}
                       onChange={(e) => updateEdu(edu.id, "gpa", e.target.value)}
                       placeholder="3.8"
-                      style={{ ...inp, width: 64 }}
+                      className={`${inputCls} w-full`}
                     />
                   </Field>
                 </div>
@@ -195,7 +192,7 @@ export default function Step4Education({
             onClick={() => ensureSection("awards")}
           />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          <div className="flex flex-col">
             {awardItems.map((award) => (
               <ItemCard
                 key={award.id}
@@ -213,10 +210,10 @@ export default function Step4Education({
                       updateAward(award.id, "title", e.target.value)
                     }
                     placeholder="Best Innovation Award"
-                    style={inp}
+                    className={inputCls}
                   />
                 </Field>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="flex gap-2">
                   <Field label="Issuer / Organization">
                     <input
                       value={award.issuer}
@@ -224,7 +221,7 @@ export default function Step4Education({
                         updateAward(award.id, "issuer", e.target.value)
                       }
                       placeholder="Google"
-                      style={inp}
+                      className={inputCls}
                     />
                   </Field>
                   <Field label="Date">
@@ -234,7 +231,7 @@ export default function Step4Education({
                         updateAward(award.id, "date", e.target.value)
                       }
                       placeholder="2023"
-                      style={{ ...inp, width: 90 }}
+                      className={`${inputCls} w-full`}
                     />
                   </Field>
                 </div>
@@ -246,7 +243,7 @@ export default function Step4Education({
                       updateAward(award.id, "description", e.target.value)
                     }
                     placeholder="Brief context about this achievement…"
-                    style={{ ...inp, resize: "vertical" }}
+                    className={`${inputCls} resize-y`}
                   />
                 </Field>
               </ItemCard>
@@ -277,7 +274,7 @@ export default function Step4Education({
             onClick={() => ensureSection("volunteer")}
           />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          <div className="flex flex-col">
             {volItems.map((vol) => (
               <ItemCard
                 key={vol.id}
@@ -286,7 +283,7 @@ export default function Step4Education({
                   handleVolChange(volItems.filter((v) => v.id !== vol.id))
                 }
               >
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="flex gap-2">
                   <Field label="Organization">
                     <input
                       value={vol.organization}
@@ -294,7 +291,7 @@ export default function Step4Education({
                         updateVol(vol.id, "organization", e.target.value)
                       }
                       placeholder="Red Cross"
-                      style={inp}
+                      className={inputCls}
                     />
                   </Field>
                   <Field label="Role">
@@ -304,13 +301,11 @@ export default function Step4Education({
                         updateVol(vol.id, "role", e.target.value)
                       }
                       placeholder="Event Coordinator"
-                      style={inp}
+                      className={inputCls}
                     />
                   </Field>
                 </div>
-                <div
-                  style={{ display: "flex", gap: 8, alignItems: "flex-end" }}
-                >
+                <div className="flex gap-2 items-end">
                   <Field label="Start Date">
                     <input
                       value={vol.startDate}
@@ -318,7 +313,7 @@ export default function Step4Education({
                         updateVol(vol.id, "startDate", e.target.value)
                       }
                       placeholder="Mar 2021"
-                      style={inp}
+                      className={`${inputCls} w-full`}
                     />
                   </Field>
                   {!vol.current && (
@@ -329,11 +324,11 @@ export default function Step4Education({
                           updateVol(vol.id, "endDate", e.target.value)
                         }
                         placeholder="Dec 2022"
-                        style={inp}
+                        className={`${inputCls} w-full`}
                       />
                     </Field>
                   )}
-                  <div style={{ paddingBottom: 6 }}>
+                  <div className="pb-1.5">
                     <Checkbox
                       label="Ongoing"
                       checked={vol.current}
@@ -349,7 +344,7 @@ export default function Step4Education({
                       updateVol(vol.id, "description", e.target.value)
                     }
                     placeholder="What did you do and what impact did it have?"
-                    style={{ ...inp, resize: "vertical" }}
+                    className={`${inputCls} resize-y`}
                   />
                 </Field>
               </ItemCard>

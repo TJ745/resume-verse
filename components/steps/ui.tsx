@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-// ── Base styles ───────────────────────────────────────────
-
+// ── inputStyle kept for Step files that still use it as a CSSProperties spread ──
+// Gradually all steps will move to Tailwind classes — this bridges the gap.
 export const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "0.5rem 0.75rem",
@@ -18,14 +18,9 @@ export const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
-export const labelStyle: React.CSSProperties = {
-  fontSize: "0.7rem",
-  fontWeight: 600,
-  color: "var(--rv-muted)",
-  display: "block",
-  marginBottom: "0.25rem",
-  letterSpacing: "0.04em",
-};
+// ── Shared input className (preferred going forward) ──────
+export const inputCls =
+  " px-3 py-2 border border-rv-border rounded-sm bg-rv-white text-rv-ink text-[0.8125rem] outline-none leading-snug focus:border-rv-accent transition-colors";
 
 // ── Field ─────────────────────────────────────────────────
 
@@ -39,22 +34,11 @@ export function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 4,
-        width: "100%",
-      }}
-    >
-      <label style={labelStyle}>
+    <div className="flex flex-col gap-1 w-full">
+      <label className="text-[0.7rem] font-semibold text-rv-muted tracking-[0.04em]">
         {label}
         {optional && (
-          <span
-            style={{ color: "var(--rv-muted)", fontWeight: 400, marginLeft: 4 }}
-          >
-            (optional)
-          </span>
+          <span className="font-normal text-rv-muted ml-1">(optional)</span>
         )}
       </label>
       {children}
@@ -72,25 +56,8 @@ export function SectionHeading({
   action?: React.ReactNode;
 }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        borderBottom: "1px solid var(--rv-border)",
-        paddingBottom: "0.4rem",
-        marginBottom: "0.75rem",
-      }}
-    >
-      <span
-        style={{
-          fontSize: "0.62rem",
-          fontWeight: 700,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase" as const,
-          color: "var(--rv-muted)",
-        }}
-      >
+    <div className="flex items-center justify-between border-b border-rv-border pb-1.5 mb-3">
+      <span className="text-[0.62rem] font-bold tracking-widest uppercase text-rv-muted">
         {label}
       </span>
       {action}
@@ -113,43 +80,22 @@ export function VisibilityToggle({
     <button
       type="button"
       onClick={onToggle}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        color: enabled ? "var(--rv-accent)" : "var(--rv-muted)",
-        fontFamily: "inherit",
-        fontSize: "0.72rem",
-        padding: 0,
-        flexShrink: 0,
-      }}
+      className={[
+        "inline-flex items-center gap-1.5 bg-transparent border-0 cursor-pointer text-[0.72rem] p-0 shrink-0 transition-colors",
+        enabled ? "text-rv-accent" : "text-rv-muted",
+      ].join(" ")}
     >
       <span
-        style={{
-          width: 28,
-          height: 16,
-          borderRadius: 8,
-          background: enabled ? "var(--rv-accent)" : "var(--rv-border)",
-          display: "inline-flex",
-          alignItems: "center",
-          padding: "0 2px",
-          transition: "background 0.15s",
-          flexShrink: 0,
-        }}
+        className={[
+          "w-7 h-4 rounded-full flex items-center px-0.5 shrink-0 transition-colors duration-150",
+          enabled ? "bg-rv-accent" : "bg-rv-border",
+        ].join(" ")}
       >
         <span
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: "50%",
-            background: "#fff",
-            transform: enabled ? "translateX(12px)" : "translateX(0)",
-            transition: "transform 0.15s",
-            display: "block",
-          }}
+          className={[
+            "w-3 h-3 rounded-full bg-white block transition-transform duration-150",
+            enabled ? "translate-x-3" : "translate-x-0",
+          ].join(" ")}
         />
       </span>
       {label}
@@ -170,27 +116,7 @@ export function AddButton({
     <button
       type="button"
       onClick={onClick}
-      style={{
-        width: "100%",
-        background: "none",
-        border: "1px dashed var(--rv-border)",
-        borderRadius: 2,
-        padding: "0.45rem 1rem",
-        cursor: "pointer",
-        color: "var(--rv-muted)",
-        fontFamily: "inherit",
-        fontSize: "0.78rem",
-        fontWeight: 500,
-        transition: "color 0.15s, border-color 0.15s",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "var(--rv-accent)";
-        e.currentTarget.style.color = "var(--rv-accent)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "var(--rv-border)";
-        e.currentTarget.style.color = "var(--rv-muted)";
-      }}
+      className="w-full bg-transparent border border-dashed border-rv-border rounded-sm py-2 px-4 cursor-pointer text-rv-muted text-[0.78rem] font-medium transition-colors duration-150 hover:border-rv-accent hover:text-rv-accent"
     >
       + {label}
     </button>
@@ -211,37 +137,14 @@ export function ItemCard({
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-
   return (
-    <div
-      style={{
-        border: "1px solid var(--rv-border)",
-        borderRadius: 2,
-        background: "var(--rv-white)",
-        marginBottom: "0.5rem",
-        position: "relative",
-      }}
-    >
+    <div className="border border-rv-border rounded-sm bg-rv-white mb-2">
       <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0.45rem 0.75rem",
-          borderBottom: open ? "1px solid var(--rv-border)" : "none",
-          background: "var(--rv-cream)",
-          cursor: "pointer",
-          userSelect: "none",
-        }}
+        className="flex items-center justify-between px-3 py-2 bg-rv-cream cursor-pointer select-none border-b border-rv-border"
+        style={{ borderBottom: open ? undefined : "none" }}
         onClick={() => setOpen((o) => !o)}
       >
-        <span
-          style={{
-            fontSize: "0.75rem",
-            fontWeight: 500,
-            color: "var(--rv-ink)",
-          }}
-        >
+        <span className="text-[0.75rem] font-medium text-rv-ink">
           {open ? "▾" : "▸"} {title ?? "Item"}
         </span>
         <button
@@ -250,38 +153,12 @@ export function ItemCard({
             e.stopPropagation();
             onRemove();
           }}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            color: "var(--rv-muted)",
-            fontFamily: "inherit",
-            fontSize: "0.72rem",
-            padding: 0,
-            transition: "color 0.1s",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.color = "var(--rv-accent)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.color = "var(--rv-muted)")
-          }
+          className="bg-transparent border-0 cursor-pointer text-rv-muted text-[0.72rem] p-0 transition-colors hover:text-rv-accent"
         >
           Remove
         </button>
       </div>
-      {open && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-            padding: "0.75rem",
-          }}
-        >
-          {children}
-        </div>
-      )}
+      {open && <div className="flex flex-col gap-2.5 p-3">{children}</div>}
     </div>
   );
 }
@@ -298,54 +175,26 @@ export function Checkbox({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        fontSize: "0.78rem",
-        color: "var(--rv-muted)",
-        cursor: "pointer",
-        userSelect: "none",
-      }}
-    >
+    <label className="inline-flex items-center gap-1.5 text-[0.78rem] text-rv-muted cursor-pointer select-none">
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        style={{
-          accentColor: "var(--rv-accent)",
-          width: 13,
-          height: 13,
-          cursor: "pointer",
-        }}
+        className="w-4 h-4 cursor-pointer accent-rv-accent"
       />
       {label}
     </label>
   );
 }
 
-// ── Small icon button ─────────────────────────────────────
+// ── Small icon remove button ──────────────────────────────
 
 export function IconRemove({ onClick }: { onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      style={{
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        color: "var(--rv-muted)",
-        fontFamily: "inherit",
-        fontSize: "0.75rem",
-        flexShrink: 0,
-        padding: "0 2px",
-        lineHeight: 1,
-        transition: "color 0.1s",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.color = "var(--rv-accent)")}
-      onMouseLeave={(e) => (e.currentTarget.style.color = "var(--rv-muted)")}
+      className="bg-transparent border-0 cursor-pointer text-rv-muted text-[0.75rem] shrink-0 px-0.5 leading-none transition-colors hover:text-rv-accent"
       title="Remove"
     >
       ✕

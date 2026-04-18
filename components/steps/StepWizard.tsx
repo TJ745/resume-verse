@@ -28,6 +28,7 @@ export default function StepWizard({
   onPersonalInfoChange,
 }: StepWizardProps) {
   const [step, setStep] = useState(1);
+  const [finished, setFinished] = useState(false);
 
   const isLast = step === STEPS.length;
   const isFirst = step === 1;
@@ -36,29 +37,19 @@ export default function StepWizard({
     if (n >= 1 && n <= STEPS.length) setStep(n);
   }
 
-  const nextLabel = isLast ? "Save & Finish" : "Save & Next →";
+  function handleNext() {
+    if (isLast) {
+      setFinished(true);
+      setTimeout(() => setFinished(false), 3000);
+    } else {
+      goTo(step + 1);
+    }
+  }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        overflow: "hidden",
-      }}
-    >
+    <div className="flex flex-col h-full overflow-hidden">
       {/* ── Step indicator ── */}
-      <div
-        style={{
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "stretch",
-          height: 48,
-          borderBottom: "1px solid var(--rv-border)",
-          background: "var(--rv-paper)",
-          overflowX: "auto",
-        }}
-      >
+      <div className="flex items-stretch shrink-0 h-12 border-b border-rv-border bg-rv-paper overflow-x-auto">
         {STEPS.map((s) => {
           const isActive = s.number === step;
           const isComplete = s.number < step;
@@ -67,56 +58,32 @@ export default function StepWizard({
               key={s.number}
               type="button"
               onClick={() => goTo(s.number)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                flexShrink: 0,
-                background: "none",
-                border: "none",
-                borderBottom: isActive
-                  ? "2px solid var(--rv-accent)"
-                  : "2px solid transparent",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                padding: "0 14px",
-                height: "100%",
-                transition: "border-color 0.15s",
-              }}
+              className={[
+                "flex items-center gap-1.5 shrink-0 bg-transparent border-0 border-b-2 cursor-pointer px-3.5 h-full transition-colors duration-150",
+                isActive ? "border-rv-accent" : "border-transparent",
+              ].join(" ")}
             >
               <span
-                style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: "50%",
-                  fontSize: "0.58rem",
-                  fontWeight: 700,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  background: isActive
-                    ? "var(--rv-accent)"
+                className={[
+                  "w-4.5 h-4.5 rounded-full text-[0.58rem] font-bold flex items-center justify-center shrink-0 transition-colors duration-150",
+                  isActive
+                    ? "bg-rv-accent text-white"
                     : isComplete
-                      ? "#2d8a4e"
-                      : "var(--rv-border)",
-                  color: isActive || isComplete ? "#fff" : "var(--rv-muted)",
-                  transition: "background 0.15s",
-                }}
+                      ? "bg-[#2d8a4e] text-white"
+                      : "bg-rv-border text-rv-muted",
+                ].join(" ")}
               >
                 {isComplete ? "✓" : s.number}
               </span>
               <span
-                style={{
-                  fontSize: "0.75rem",
-                  fontWeight: isActive ? 600 : 400,
-                  color: isActive
-                    ? "var(--rv-ink)"
+                className={[
+                  "text-[0.75rem] whitespace-nowrap transition-colors duration-150",
+                  isActive
+                    ? "font-semibold text-rv-ink"
                     : isComplete
-                      ? "#2d8a4e"
-                      : "var(--rv-muted)",
-                  whiteSpace: "nowrap",
-                }}
+                      ? "text-[#2d8a4e]"
+                      : "text-rv-muted",
+                ].join(" ")}
               >
                 {s.label}
               </span>
@@ -125,8 +92,8 @@ export default function StepWizard({
         })}
       </div>
 
-      {/* ── Step content — scrollable ── */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "1.25rem 1rem" }}>
+      {/* ── Step content ── */}
+      <div className="flex-1 overflow-y-auto p-4">
         {step === 1 && (
           <Step1PersonalInfo
             resumeId={resume.id}
@@ -160,65 +127,37 @@ export default function StepWizard({
       </div>
 
       {/* ── Navigation ── */}
-      <div
-        style={{
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0.65rem 1rem",
-          borderTop: "1px solid var(--rv-border)",
-          background: "var(--rv-paper)",
-          gap: 12,
-        }}
-      >
+      <div className="flex items-center justify-between shrink-0 px-4 py-2.5 border-t border-rv-border bg-rv-paper gap-3">
         <button
           type="button"
           onClick={() => goTo(step - 1)}
           disabled={isFirst}
-          style={{
-            background: "none",
-            border: "1px solid var(--rv-border)",
-            borderRadius: 2,
-            padding: "0.4rem 1rem",
-            cursor: isFirst ? "not-allowed" : "pointer",
-            color: isFirst ? "var(--rv-border)" : "var(--rv-muted)",
-            fontFamily: "inherit",
-            fontSize: "0.78rem",
-            fontWeight: 500,
-          }}
+          className="border border-rv-border rounded-sm px-4 py-1.5 text-[0.78rem] font-medium text-rv-muted bg-transparent cursor-pointer disabled:cursor-not-allowed disabled:text-rv-border hover:border-rv-ink hover:text-rv-ink transition-colors"
         >
           ← Back
         </button>
 
-        <span style={{ fontSize: "0.7rem", color: "var(--rv-muted)" }}>
+        <span className="text-[0.7rem] text-rv-muted">
           {step} / {STEPS.length}
         </span>
 
         <button
           type="button"
-          onClick={() => goTo(step + 1)}
-          disabled={isLast}
-          style={{
-            background: isLast ? "#2d8a4e" : "var(--rv-ink)",
-            color: "#fff",
-            border: "none",
-            borderRadius: 2,
-            padding: "0.4rem 1.1rem",
-            cursor: isLast ? "default" : "pointer",
-            fontFamily: "inherit",
-            fontSize: "0.78rem",
-            fontWeight: 600,
-            transition: "background 0.15s",
-          }}
-          onMouseEnter={(e) => {
-            if (!isLast) e.currentTarget.style.background = "var(--rv-accent)";
-          }}
-          onMouseLeave={(e) => {
-            if (!isLast) e.currentTarget.style.background = "var(--rv-ink)";
-          }}
+          onClick={handleNext}
+          className={[
+            "border-0 rounded-sm px-4 py-1.5 text-[0.78rem] font-semibold text-white cursor-pointer transition-colors duration-150",
+            finished
+              ? "bg-[#2d8a4e]"
+              : isLast
+                ? "bg-[#2d8a4e] hover:bg-rv-ink"
+                : "bg-rv-ink hover:bg-rv-accent",
+          ].join(" ")}
         >
-          {nextLabel}
+          {finished
+            ? "✓ All saved!"
+            : isLast
+              ? "Save & Finish ✓"
+              : "Save & Next →"}
         </button>
       </div>
     </div>

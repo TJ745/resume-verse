@@ -1,0 +1,12 @@
+export { default as ModernTemplate }       from "./ModernTemplate";
+export { default as ClassicTemplate }      from "./ClassicTemplate";
+export { default as MinimalTemplate }      from "./MinimalTemplate";
+export { default as ExecutiveTemplate }    from "./ExecutiveTemplate";
+export { default as CompactTemplate }      from "./CompactTemplate";
+export { default as CreativeTemplate }     from "./CreativeTemplate";
+export { default as ElegantTemplate }      from "./ElegantTemplate";
+export { default as TechnicalTemplate }    from "./TechnicalTemplate";
+export { default as ChronologicalTemplate } from "./ChronologicalTemplate";
+export { default as BoldTemplate }         from "./BoldTemplate";
+export { getAccent, getName, getJobTitle } from "./Shared";
+export type { TplProps }                   from "./types";

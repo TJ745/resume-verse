@@ -9,7 +9,7 @@ import {
   Field,
   Checkbox,
   IconRemove,
-  inputStyle,
+  inputCls,
 } from "./ui";
 import type {
   ResumeSection,
@@ -26,7 +26,7 @@ interface Props {
 
 export default function Step3Experience({
   resumeId,
-  jobTitle,
+  jobTitle: _jobTitle,
   sections,
   onSectionsChange,
 }: Props) {
@@ -36,7 +36,6 @@ export default function Step3Experience({
     onSectionsChange,
   );
 
-  // ── Single source of truth: read from sections prop ──────
   const expSection = sections.find((s) => s.type === "experience");
   const projSection = sections.find((s) => s.type === "projects");
 
@@ -46,7 +45,6 @@ export default function Step3Experience({
   function handleExpChange(items: ExperienceItem[]) {
     if (expSection) updateSection(expSection.id, items);
   }
-
   function updateExp<K extends keyof ExperienceItem>(
     id: string,
     key: K,
@@ -60,7 +58,6 @@ export default function Step3Experience({
   function handleProjChange(items: ProjectItem[]) {
     if (projSection) updateSection(projSection.id, items);
   }
-
   function updateProj<K extends keyof ProjectItem>(
     id: string,
     key: K,
@@ -71,10 +68,8 @@ export default function Step3Experience({
     );
   }
 
-  const inp = inputStyle;
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+    <div className="flex flex-col gap-7">
       {/* ── Work Experience ── */}
       <div>
         <SectionHeading label="Work Experience" />
@@ -84,7 +79,7 @@ export default function Step3Experience({
             onClick={() => ensureSection("experience")}
           />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          <div className="flex flex-col">
             {expItems.map((exp) => (
               <ItemCard
                 key={exp.id}
@@ -97,7 +92,7 @@ export default function Step3Experience({
                   handleExpChange(expItems.filter((e) => e.id !== exp.id))
                 }
               >
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="flex gap-2">
                   <Field label="Job Title">
                     <input
                       value={exp.role}
@@ -105,7 +100,7 @@ export default function Step3Experience({
                         updateExp(exp.id, "role", e.target.value)
                       }
                       placeholder="Software Engineer"
-                      style={inp}
+                      className={inputCls}
                     />
                   </Field>
                   <Field label="Company">
@@ -115,7 +110,7 @@ export default function Step3Experience({
                         updateExp(exp.id, "company", e.target.value)
                       }
                       placeholder="Acme Inc."
-                      style={inp}
+                      className={inputCls}
                     />
                   </Field>
                 </div>
@@ -127,13 +122,11 @@ export default function Step3Experience({
                       updateExp(exp.id, "location", e.target.value)
                     }
                     placeholder="New York, NY"
-                    style={inp}
+                    className={inputCls}
                   />
                 </Field>
 
-                <div
-                  style={{ display: "flex", gap: 8, alignItems: "flex-end" }}
-                >
+                <div className="flex gap-2 items-end">
                   <Field label="Start Date">
                     <input
                       value={exp.startDate}
@@ -141,7 +134,7 @@ export default function Step3Experience({
                         updateExp(exp.id, "startDate", e.target.value)
                       }
                       placeholder="Jan 2022"
-                      style={inp}
+                      className={`${inputCls} w-full`}
                     />
                   </Field>
                   {!exp.current && (
@@ -152,11 +145,11 @@ export default function Step3Experience({
                           updateExp(exp.id, "endDate", e.target.value)
                         }
                         placeholder="Dec 2024"
-                        style={inp}
+                        className={`${inputCls} w-full`}
                       />
                     </Field>
                   )}
-                  <div style={{ paddingBottom: 6 }}>
+                  <div className="pb-1.5">
                     <Checkbox
                       label="Current"
                       checked={exp.current}
@@ -167,22 +160,8 @@ export default function Step3Experience({
 
                 {/* Bullets */}
                 <div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: 8,
-                    }}
-                  >
-                    <label
-                      style={{
-                        fontSize: "0.7rem",
-                        fontWeight: 600,
-                        color: "var(--rv-muted)",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[0.7rem] font-semibold text-rv-muted tracking-[0.04em]">
                       Bullet Points
                     </label>
                     <AIGenerateButton
@@ -218,23 +197,8 @@ export default function Step3Experience({
                   </div>
 
                   {exp.bullets.map((b, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        display: "flex",
-                        gap: 6,
-                        marginBottom: 6,
-                        alignItems: "flex-start",
-                      }}
-                    >
-                      <span
-                        style={{
-                          color: "var(--rv-accent)",
-                          fontSize: "0.7rem",
-                          paddingTop: 10,
-                          flexShrink: 0,
-                        }}
-                      >
+                    <div key={i} className="flex gap-1.5 mb-1.5 items-start">
+                      <span className="text-rv-accent text-[0.7rem] pt-2.5 shrink-0">
                         •
                       </span>
                       <textarea
@@ -250,14 +214,9 @@ export default function Step3Experience({
                           )
                         }
                         placeholder="Led a team of 5 engineers to ship…"
-                        style={{
-                          ...inp,
-                          flex: 1,
-                          resize: "vertical",
-                          fontSize: "0.78rem",
-                        }}
+                        className={`${inputCls} flex-1 resize-y text-[0.78rem] w-full`}
                       />
-                      <div style={{ paddingTop: 8 }}>
+                      <div className="pt-2">
                         <IconRemove
                           onClick={() =>
                             updateExp(
@@ -276,22 +235,7 @@ export default function Step3Experience({
                     onClick={() =>
                       updateExp(exp.id, "bullets", [...exp.bullets, ""])
                     }
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "var(--rv-muted)",
-                      fontFamily: "inherit",
-                      fontSize: "0.75rem",
-                      padding: 0,
-                      transition: "color 0.1s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = "var(--rv-accent)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.color = "var(--rv-muted)")
-                    }
+                    className="bg-transparent border-0 cursor-pointer text-rv-muted text-[0.75rem] p-0 transition-colors hover:text-rv-accent"
                   >
                     + Add bullet
                   </button>
@@ -328,7 +272,7 @@ export default function Step3Experience({
             onClick={() => ensureSection("projects")}
           />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          <div className="flex flex-col">
             {projItems.map((proj) => (
               <ItemCard
                 key={proj.id}
@@ -344,7 +288,7 @@ export default function Step3Experience({
                       updateProj(proj.id, "name", e.target.value)
                     }
                     placeholder="ResumeVerse"
-                    style={inp}
+                    className={inputCls}
                   />
                 </Field>
                 <Field label="Technologies">
@@ -354,7 +298,7 @@ export default function Step3Experience({
                       updateProj(proj.id, "technologies", e.target.value)
                     }
                     placeholder="Next.js, Prisma, OpenAI"
-                    style={inp}
+                    className={inputCls}
                   />
                 </Field>
                 <Field label="Project URL" optional>
@@ -362,26 +306,12 @@ export default function Step3Experience({
                     value={proj.url ?? ""}
                     onChange={(e) => updateProj(proj.id, "url", e.target.value)}
                     placeholder="https://github.com/…"
-                    style={inp}
+                    className={inputCls}
                   />
                 </Field>
                 <div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: 6,
-                    }}
-                  >
-                    <label
-                      style={{
-                        fontSize: "0.7rem",
-                        fontWeight: 600,
-                        color: "var(--rv-muted)",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[0.7rem] font-semibold text-rv-muted tracking-[0.04em]">
                       Description
                     </label>
                     <AIGenerateButton
@@ -421,7 +351,7 @@ export default function Step3Experience({
                       updateProj(proj.id, "description", e.target.value)
                     }
                     placeholder="Describe what you built and its impact…"
-                    style={{ ...inp, resize: "vertical" }}
+                    className={`${inputCls} resize-y w-full`}
                   />
                 </div>
               </ItemCard>

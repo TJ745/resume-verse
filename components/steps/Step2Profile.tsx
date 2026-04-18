@@ -8,7 +8,7 @@ import {
   ItemCard,
   Field,
   IconRemove,
-  inputStyle,
+  inputCls,
 } from "./ui";
 import type {
   ResumeSection,
@@ -39,13 +39,10 @@ export default function Step2Profile({
   sections,
   onSectionsChange,
 }: Props) {
-  const { updateSection, ensureSection } = useSectionSave(
-    resumeId,
-    sections,
-    onSectionsChange,
-  );
+  const { updateSection, ensureSection, ensureSectionWithContent } =
+    useSectionSave(resumeId, sections, onSectionsChange);
 
-  // ── Read directly from sections prop (single source of truth) ──
+  // ── Derive from sections prop (single source of truth) ───
   const summarySection = sections.find((s) => s.type === "summary");
   const skillsSection = sections.find((s) => s.type === "skills");
   const certsSection = sections.find((s) => s.type === "certifications");
@@ -54,7 +51,6 @@ export default function Step2Profile({
   const summaryText =
     (summarySection?.content as SummaryContent | undefined)?.text ?? "";
 
-  // Safe skills parse — guard against malformed content
   const rawSkills = skillsSection?.content;
   const skillCats: SkillsContent["categories"] =
     rawSkills &&
@@ -72,77 +68,66 @@ export default function Step2Profile({
     ? (langsSection!.content as LanguageItem[])
     : [];
 
-  // ── Updaters ─────────────────────────────────────────────
-
-  function handleSummaryChange(text: string) {
-    if (summarySection) updateSection(summarySection.id, { text });
-  }
+  // ── Updaters — always read fresh from sections prop ──────
 
   function handleSkillsChange(cats: SkillsContent["categories"]) {
-    if (skillsSection) updateSection(skillsSection.id, { categories: cats });
+    const s = sections.find((sec) => sec.type === "skills");
+    if (s) updateSection(s.id, { categories: cats });
   }
 
   function handleCertsChange(items: CertificationItem[]) {
-    if (certsSection) updateSection(certsSection.id, items);
+    const s = sections.find((sec) => sec.type === "certifications");
+    if (s) updateSection(s.id, items);
   }
 
   function handleLangsChange(items: LanguageItem[]) {
-    if (langsSection) updateSection(langsSection.id, items);
+    const s = sections.find((sec) => sec.type === "languages");
+    if (s) updateSection(s.id, items);
   }
 
-  // ── Add helpers — ensure section exists then append item ──
+  // ── Add functions — atomic: section created + content set in one render ──
+
+  async function addSkillCategory() {
+    const newCat = { id: crypto.randomUUID(), name: "", skills: "" };
+    if (skillsSection) {
+      // Section exists — just append
+      updateSection(skillsSection.id, { categories: [...skillCats, newCat] });
+    } else {
+      // Section doesn't exist — create it WITH the first category atomically
+      await ensureSectionWithContent("skills", { categories: [newCat] });
+    }
+  }
 
   async function addLanguage() {
-    const s = await ensureSection("languages");
-    // Read content from the returned section (freshest source)
-    const existing: LanguageItem[] = Array.isArray(s.content)
-      ? (s.content as LanguageItem[])
-      : [];
-    const newItem: LanguageItem = {
+    const newLang: LanguageItem = {
       id: crypto.randomUUID(),
       language: "",
       proficiency: "Professional",
     };
-    updateSection(s.id, [...existing, newItem]);
+    if (langsSection) {
+      updateSection(langsSection.id, [...langItems, newLang]);
+    } else {
+      await ensureSectionWithContent("languages", [newLang]);
+    }
   }
 
   async function addCertification() {
-    const s = await ensureSection("certifications");
-    const existing: CertificationItem[] = Array.isArray(s.content)
-      ? (s.content as CertificationItem[])
-      : [];
-    const newItem: CertificationItem = {
+    const newCert: CertificationItem = {
       id: crypto.randomUUID(),
       name: "",
       issuer: "",
       date: "",
       url: "",
     };
-    updateSection(s.id, [...existing, newItem]);
+    if (certsSection) {
+      updateSection(certsSection.id, [...certItems, newCert]);
+    } else {
+      await ensureSectionWithContent("certifications", [newCert]);
+    }
   }
-
-  async function addSkillCategory() {
-    const s = await ensureSection("skills");
-    const raw = s.content;
-    const existing: SkillsContent["categories"] =
-      raw &&
-      typeof raw === "object" &&
-      !Array.isArray(raw) &&
-      "categories" in raw
-        ? (raw as SkillsContent).categories
-        : [];
-    updateSection(s.id, {
-      categories: [
-        ...existing,
-        { id: crypto.randomUUID(), name: "", skills: "" },
-      ],
-    });
-  }
-
-  const inp = inputStyle;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <div className="flex flex-col gap-6">
       {/* ── Summary ── */}
       <div>
         <SectionHeading
@@ -166,7 +151,9 @@ export default function Step2Profile({
                     multiline: true,
                   },
                 ]}
-                onAccept={handleSummaryChange}
+                onAccept={(text) =>
+                  summarySection && updateSection(summarySection.id, { text })
+                }
               />
             ) : undefined
           }
@@ -174,10 +161,12 @@ export default function Step2Profile({
         {summarySection ? (
           <textarea
             value={summaryText}
-            onChange={(e) => handleSummaryChange(e.target.value)}
+            onChange={(e) =>
+              updateSection(summarySection.id, { text: e.target.value })
+            }
             rows={5}
             placeholder="Write 2–4 sentences about your background and key strengths…"
-            style={{ ...inp, resize: "vertical", lineHeight: 1.6 }}
+            className={`${inputCls} w-full resize-y leading-relaxed`}
           />
         ) : (
           <AddButton
@@ -205,7 +194,7 @@ export default function Step2Profile({
                   {
                     key: "experience",
                     label: "Experience",
-                    placeholder: "Built React apps, Node APIs…",
+                    placeholder: "Built React apps…",
                     multiline: true,
                   },
                 ]}
@@ -233,13 +222,14 @@ export default function Step2Profile({
             ) : undefined
           }
         />
-        {skillsSection ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {/* Mirror Step3 pattern: show "Add section" until section exists */}
+        {!skillsSection ? (
+          <AddButton label="Add Skills section" onClick={addSkillCategory} />
+        ) : (
+          <div className="flex flex-col gap-2">
             {skillCats.map((cat) => (
-              <div
-                key={cat.id}
-                style={{ display: "flex", gap: 8, alignItems: "center" }}
-              >
+              <div key={cat.id} className="flex gap-2 items-center">
+                {/* Fixed widths: category name 35%, skills fills rest */}
                 <input
                   value={cat.name}
                   onChange={(e) =>
@@ -249,8 +239,8 @@ export default function Step2Profile({
                       ),
                     )
                   }
-                  placeholder="Category"
-                  style={{ ...inp, width: "30%", flexShrink: 0 }}
+                  placeholder="Category (e.g. Frontend)"
+                  className={`${inputCls} w-[35%] shrink-0 min-w-0`}
                 />
                 <input
                   value={cat.skills}
@@ -261,8 +251,8 @@ export default function Step2Profile({
                       ),
                     )
                   }
-                  placeholder="React, TypeScript…"
-                  style={{ ...inp, flex: 1 }}
+                  placeholder="React, TypeScript, Next.js…"
+                  className={`${inputCls} flex-1 min-w-0`}
                 />
                 <IconRemove
                   onClick={() =>
@@ -273,138 +263,148 @@ export default function Step2Profile({
             ))}
             <AddButton label="Add skill category" onClick={addSkillCategory} />
           </div>
-        ) : (
-          <AddButton label="Add Skills" onClick={addSkillCategory} />
         )}
       </div>
 
       {/* ── Languages ── */}
       <div>
         <SectionHeading label="Languages" />
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {langItems.map((lang) => (
-            <div
-              key={lang.id}
-              style={{ display: "flex", gap: 8, alignItems: "center" }}
-            >
-              <input
-                value={lang.language}
-                onChange={(e) =>
-                  handleLangsChange(
-                    langItems.map((l) =>
-                      l.id === lang.id ? { ...l, language: e.target.value } : l,
-                    ),
-                  )
-                }
-                placeholder="e.g. Arabic"
-                style={{ ...inp, flex: 1 }}
-              />
-              <select
-                value={lang.proficiency}
-                onChange={(e) =>
-                  handleLangsChange(
-                    langItems.map((l) =>
-                      l.id === lang.id
-                        ? { ...l, proficiency: e.target.value }
-                        : l,
-                    ),
-                  )
-                }
-                style={{ ...inp, width: "auto", cursor: "pointer" }}
-              >
-                {PROFICIENCY.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-              <IconRemove
-                onClick={() =>
-                  handleLangsChange(langItems.filter((l) => l.id !== lang.id))
-                }
-              />
-            </div>
-          ))}
-          <AddButton label="Add language" onClick={addLanguage} />
-        </div>
+        {!langsSection ? (
+          <AddButton label="Add Languages section" onClick={addLanguage} />
+        ) : (
+          <div className="flex flex-col gap-2">
+            {langItems.map((lang) => (
+              <div key={lang.id} className="flex gap-2 items-center">
+                <input
+                  value={lang.language}
+                  onChange={(e) =>
+                    handleLangsChange(
+                      langItems.map((l) =>
+                        l.id === lang.id
+                          ? { ...l, language: e.target.value }
+                          : l,
+                      ),
+                    )
+                  }
+                  placeholder="e.g. Arabic"
+                  className={`${inputCls} flex-1`}
+                />
+                <select
+                  value={lang.proficiency}
+                  onChange={(e) =>
+                    handleLangsChange(
+                      langItems.map((l) =>
+                        l.id === lang.id
+                          ? { ...l, proficiency: e.target.value }
+                          : l,
+                      ),
+                    )
+                  }
+                  className={`${inputCls} w-auto cursor-pointer`}
+                >
+                  {PROFICIENCY.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+                <IconRemove
+                  onClick={() =>
+                    handleLangsChange(langItems.filter((l) => l.id !== lang.id))
+                  }
+                />
+              </div>
+            ))}
+            <AddButton label="Add language" onClick={addLanguage} />
+          </div>
+        )}
       </div>
 
       {/* ── Certifications ── */}
       <div>
         <SectionHeading label="Certifications" />
-        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-          {certItems.map((cert) => (
-            <ItemCard
-              key={cert.id}
-              title={cert.name || "New Certification"}
-              onRemove={() =>
-                handleCertsChange(certItems.filter((c) => c.id !== cert.id))
-              }
-            >
-              <Field label="Certification Name">
-                <input
-                  value={cert.name}
-                  onChange={(e) =>
-                    handleCertsChange(
-                      certItems.map((c) =>
-                        c.id === cert.id ? { ...c, name: e.target.value } : c,
-                      ),
-                    )
-                  }
-                  placeholder="AWS Solutions Architect"
-                  style={inp}
-                />
-              </Field>
-              <div style={{ display: "flex", gap: 8 }}>
-                <Field label="Issuing Organization">
+        {!certsSection ? (
+          <AddButton
+            label="Add Certifications section"
+            onClick={addCertification}
+          />
+        ) : (
+          <div className="flex flex-col">
+            {certItems.map((cert) => (
+              <ItemCard
+                key={cert.id}
+                title={cert.name || "New Certification"}
+                onRemove={() =>
+                  handleCertsChange(certItems.filter((c) => c.id !== cert.id))
+                }
+              >
+                <Field label="Certification Name">
                   <input
-                    value={cert.issuer}
+                    value={cert.name}
                     onChange={(e) =>
                       handleCertsChange(
                         certItems.map((c) =>
-                          c.id === cert.id
-                            ? { ...c, issuer: e.target.value }
-                            : c,
+                          c.id === cert.id ? { ...c, name: e.target.value } : c,
                         ),
                       )
                     }
-                    placeholder="Amazon Web Services"
-                    style={inp}
+                    placeholder="AWS Solutions Architect"
+                    className={inputCls}
                   />
                 </Field>
-                <Field label="Date">
+                <div className="flex gap-2">
+                  <Field label="Issuing Organization">
+                    <input
+                      value={cert.issuer}
+                      onChange={(e) =>
+                        handleCertsChange(
+                          certItems.map((c) =>
+                            c.id === cert.id
+                              ? { ...c, issuer: e.target.value }
+                              : c,
+                          ),
+                        )
+                      }
+                      placeholder="Amazon Web Services"
+                      className={inputCls}
+                    />
+                  </Field>
+                  <Field label="Date">
+                    <input
+                      value={cert.date}
+                      onChange={(e) =>
+                        handleCertsChange(
+                          certItems.map((c) =>
+                            c.id === cert.id
+                              ? { ...c, date: e.target.value }
+                              : c,
+                          ),
+                        )
+                      }
+                      placeholder="2024"
+                      className={`${inputCls} w-full`}
+                    />
+                  </Field>
+                </div>
+                <Field label="Credential URL" optional>
                   <input
-                    value={cert.date}
+                    value={cert.url ?? ""}
                     onChange={(e) =>
                       handleCertsChange(
                         certItems.map((c) =>
-                          c.id === cert.id ? { ...c, date: e.target.value } : c,
+                          c.id === cert.id ? { ...c, url: e.target.value } : c,
                         ),
                       )
                     }
-                    placeholder="2024"
-                    style={{ ...inp, width: 80 }}
+                    placeholder="https://credential.net/…"
+                    className={inputCls}
                   />
                 </Field>
-              </div>
-              <Field label="Credential URL" optional>
-                <input
-                  value={cert.url ?? ""}
-                  onChange={(e) =>
-                    handleCertsChange(
-                      certItems.map((c) =>
-                        c.id === cert.id ? { ...c, url: e.target.value } : c,
-                      ),
-                    )
-                  }
-                  placeholder="https://credential.net/…"
-                  style={inp}
-                />
-              </Field>
-            </ItemCard>
-          ))}
-          <AddButton label="Add certification" onClick={addCertification} />
-        </div>
+              </ItemCard>
+            ))}
+            <AddButton label="Add certification" onClick={addCertification} />
+          </div>
+        )}
       </div>
     </div>
   );

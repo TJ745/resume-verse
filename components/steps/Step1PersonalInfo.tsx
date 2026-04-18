@@ -2,13 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { savePersonalInfo } from "@/actions/builder.actions";
-import {
-  Field,
-  SectionHeading,
-  VisibilityToggle,
-  inputStyle,
-  labelStyle,
-} from "./ui";
+import { Field, SectionHeading, VisibilityToggle, inputCls } from "./ui";
 import type { PersonalInfo } from "@/types/resume";
 import { DEFAULT_PERSONAL_INFO } from "@/types/resume";
 
@@ -34,7 +28,6 @@ export default function Step1PersonalInfo({
   const latestInfo = useRef(info);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
-  // Keep ref in sync without triggering re-renders
   useEffect(() => {
     latestInfo.current = info;
   });
@@ -69,46 +62,33 @@ export default function Step1PersonalInfo({
 
   function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) return;
+    if (!file || !file.type.startsWith("image/")) return;
     if (file.size > 2 * 1024 * 1024) {
       alert("Photo must be under 2 MB.");
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => {
-      set("photoUrl", reader.result as string);
-    };
+    reader.onload = () => set("photoUrl", reader.result as string);
     reader.readAsDataURL(file);
   }
 
-  const inp = inputStyle;
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div className="flex flex-col gap-5">
       {/* Save status */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <p style={{ fontSize: "0.7rem", color: "var(--rv-muted)", margin: 0 }}>
+      <div className="flex items-center justify-between">
+        <p className="text-[0.7rem] text-rv-muted m-0">
           Optional fields can be toggled on/off.
         </p>
         <span
-          style={{
-            fontSize: "0.7rem",
-            color:
-              status === "error"
-                ? "var(--rv-accent)"
-                : status === "saving"
-                  ? "var(--rv-muted)"
-                  : "#2d8a4e",
-            opacity: status === "idle" ? 0 : 1,
-            transition: "opacity 0.3s",
-          }}
+          className={[
+            "text-[0.7rem] transition-opacity duration-300",
+            status === "idle" ? "opacity-0" : "opacity-100",
+            status === "error"
+              ? "text-rv-accent"
+              : status === "saving"
+                ? "text-rv-muted"
+                : "text-[#2d8a4e]",
+          ].join(" ")}
         >
           {status === "saving"
             ? "Saving…"
@@ -121,13 +101,13 @@ export default function Step1PersonalInfo({
       {/* ── Identity ── */}
       <div>
         <SectionHeading label="Identity" />
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="flex flex-col gap-2.5">
           <Field label="Full Name">
             <input
               value={info.fullName}
               onChange={(e) => set("fullName", e.target.value)}
               placeholder="Jane Doe"
-              style={inp}
+              className={inputCls}
             />
           </Field>
           <Field label="Job Title / Headline">
@@ -135,7 +115,7 @@ export default function Step1PersonalInfo({
               value={info.jobTitle}
               onChange={(e) => set("jobTitle", e.target.value)}
               placeholder="Senior Product Designer"
-              style={inp}
+              className={inputCls}
             />
           </Field>
         </div>
@@ -154,85 +134,43 @@ export default function Step1PersonalInfo({
           }
         />
         {info.showPhoto && (
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            {/* Avatar preview / upload target */}
+          <div className="flex items-center gap-3.5">
+            {/* Avatar circle */}
             <div
               onClick={() => photoInputRef.current?.click()}
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: "50%",
-                border: `2px dashed ${info.photoUrl ? "var(--rv-accent)" : "var(--rv-border)"}`,
-                overflow: "hidden",
-                cursor: "pointer",
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "var(--rv-cream)",
-                transition: "border-color 0.15s",
-              }}
+              className={[
+                "w-16 h-16 rounded-full overflow-hidden cursor-pointer shrink-0 flex items-center justify-center bg-rv-cream transition-colors duration-150",
+                info.photoUrl
+                  ? "border-2 border-rv-accent"
+                  : "border-2 border-dashed border-rv-border hover:border-rv-accent",
+              ].join(" ")}
             >
               {info.photoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={info.photoUrl}
                   alt="Profile"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  className="w-full h-full object-cover object-top block"
                 />
               ) : (
                 <CameraIcon />
               )}
             </div>
 
-            <div style={{ flex: 1 }}>
+            <div className="flex-1">
               <button
                 onClick={() => photoInputRef.current?.click()}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  padding: "0.5rem 0.75rem",
-                  background: "none",
-                  border: "1px solid var(--rv-border)",
-                  borderRadius: 2,
-                  cursor: "pointer",
-                  color: "var(--rv-ink)",
-                  fontSize: "0.8rem",
-                  fontFamily: "inherit",
-                  textAlign: "left",
-                  marginBottom: 4,
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--rv-accent)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--rv-border)")
-                }
+                className="block w-full px-3 py-2 bg-transparent border border-rv-border rounded-sm cursor-pointer text-rv-ink text-[0.8rem] text-left mb-1 hover:border-rv-accent transition-colors"
               >
                 {info.photoUrl ? "Change photo…" : "Upload photo…"}
               </button>
-              <p
-                style={{
-                  fontSize: "0.7rem",
-                  color: "var(--rv-muted)",
-                  margin: 0,
-                }}
-              >
+              <p className="text-[0.7rem] text-rv-muted m-0">
                 JPG, PNG or WebP · Max 2 MB
               </p>
               {info.photoUrl && (
                 <button
                   onClick={() => set("photoUrl", "")}
-                  style={{
-                    marginTop: 4,
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "var(--rv-accent)",
-                    fontSize: "0.72rem",
-                    fontFamily: "inherit",
-                    padding: 0,
-                  }}
+                  className="mt-1 bg-transparent border-0 cursor-pointer text-rv-accent text-[0.72rem] p-0 hover:underline"
                 >
                   Remove photo
                 </button>
@@ -243,7 +181,7 @@ export default function Step1PersonalInfo({
               ref={photoInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              style={{ display: "none" }}
+              className="hidden"
               onChange={handlePhotoUpload}
             />
           </div>
@@ -253,14 +191,14 @@ export default function Step1PersonalInfo({
       {/* ── Contact ── */}
       <div>
         <SectionHeading label="Contact" />
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="flex flex-col gap-2.5">
           <Field label="Email">
             <input
               type="email"
               value={info.email}
               onChange={(e) => set("email", e.target.value)}
               placeholder="jane@example.com"
-              style={inp}
+              className={inputCls}
             />
           </Field>
           <Field label="Phone">
@@ -268,20 +206,13 @@ export default function Step1PersonalInfo({
               value={info.phone}
               onChange={(e) => set("phone", e.target.value)}
               placeholder="+1 (555) 000-0000"
-              style={inp}
+              className={inputCls}
             />
           </Field>
           <div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 6,
-              }}
-            >
-              <label style={labelStyle}>
-                Address <span style={{ fontWeight: 400 }}>(optional)</span>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[0.7rem] font-semibold text-rv-muted tracking-[0.04em]">
+                Address <span className="font-normal">(optional)</span>
               </label>
               <VisibilityToggle
                 label="Show"
@@ -294,7 +225,7 @@ export default function Step1PersonalInfo({
                 value={info.address}
                 onChange={(e) => set("address", e.target.value)}
                 placeholder="New York, NY, USA"
-                style={inp}
+                className={`${inputCls} w-full`}
               />
             )}
           </div>
@@ -304,13 +235,13 @@ export default function Step1PersonalInfo({
       {/* ── Online Profiles ── */}
       <div>
         <SectionHeading label="Online Profiles" />
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="flex flex-col gap-2.5">
           <Field label="LinkedIn">
             <input
               value={info.linkedin}
               onChange={(e) => set("linkedin", e.target.value)}
               placeholder="linkedin.com/in/janedoe"
-              style={inp}
+              className={inputCls}
             />
           </Field>
           <Field label="GitHub">
@@ -318,20 +249,13 @@ export default function Step1PersonalInfo({
               value={info.github}
               onChange={(e) => set("github", e.target.value)}
               placeholder="github.com/janedoe"
-              style={inp}
+              className={inputCls}
             />
           </Field>
           <div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 6,
-              }}
-            >
-              <label style={labelStyle}>
-                Website <span style={{ fontWeight: 400 }}>(optional)</span>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[0.7rem] font-semibold text-rv-muted tracking-[0.04em]">
+                Website <span className="font-normal">(optional)</span>
               </label>
               <VisibilityToggle
                 label="Show"
@@ -344,7 +268,7 @@ export default function Step1PersonalInfo({
                 value={info.website}
                 onChange={(e) => set("website", e.target.value)}
                 placeholder="janedoe.dev"
-                style={inp}
+                className={`${inputCls} w-full`}
               />
             )}
           </div>
@@ -358,13 +282,8 @@ function CameraIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      style={{
-        width: 22,
-        height: 22,
-        stroke: "var(--rv-muted)",
-        fill: "none",
-        strokeWidth: 1.5,
-      }}
+      className="w-5.5 h-5.5 stroke-rv-muted fill-none"
+      strokeWidth={1.5}
     >
       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
       <circle cx="12" cy="13" r="4" />

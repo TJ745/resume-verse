@@ -15,7 +15,6 @@ interface GapResult {
   label: string;
   explanations: GapExplanation[];
 }
-
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -26,7 +25,7 @@ interface Props {
 export default function CareerGapPanel({
   open,
   onClose,
-  resume,
+  resume: _resume,
   sections,
 }: Props) {
   const [gaps, setGaps] = useState<GapResult[]>([]);
@@ -46,7 +45,6 @@ export default function CareerGapPanel({
       setExpanded(new Set([0]));
     }
   }, [open]);
-
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -61,19 +59,24 @@ export default function CareerGapPanel({
     setError("");
     setGaps([]);
     try {
-      const jobs = expItems.map((e) => ({
-        role: e.role,
-        company: e.company,
-        startDate: e.startDate,
-        endDate: e.endDate,
-        current: e.current,
-      }));
       const res = await fetch("/api/ai/career-gap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobs }),
+        body: JSON.stringify({
+          jobs: expItems.map((e) => ({
+            role: e.role,
+            company: e.company,
+            startDate: e.startDate,
+            endDate: e.endDate,
+            current: e.current,
+          })),
+        }),
       });
-      if (!res.ok) throw new Error();
+      if (res.status === 402) {
+        const d = await res.json();
+        throw new Error(d.error ?? "Free plan limit reached.");
+      }
+      if (!res.ok) throw new Error("Something went wrong.");
       const data = await res.json();
       setGaps(data.gaps ?? []);
       setExpanded(new Set([0]));
@@ -89,233 +92,100 @@ export default function CareerGapPanel({
     setCopied(key);
     setTimeout(() => setCopied(null), 2000);
   }
-
-  function toggleExpand(i: number) {
+  function toggle(i: number) {
     setExpanded((prev) => {
-      const next = new Set(prev);
-      next.has(i) ? next.delete(i) : next.add(i);
-      return next;
+      const n = new Set(prev);
+      n.has(i) ? n.delete(i) : n.add(i);
+      return n;
     });
   }
 
   if (!open) return null;
-
-  const hasExperience = expItems.length >= 2;
+  const hasExp = expItems.length >= 2;
 
   return (
     <>
       <div
+        className="fixed inset-0 z-[90] bg-[rgba(15,14,13,0.35)]"
         onClick={onClose}
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 90,
-          background: "rgba(15,14,13,0.35)",
-        }}
       />
-
-      <div
-        style={{
-          position: "fixed",
-          top: 56,
-          right: 0,
-          bottom: 0,
-          width: 440,
-          zIndex: 91,
-          background: "var(--rv-paper)",
-          borderLeft: "1px solid var(--rv-border)",
-          display: "flex",
-          flexDirection: "column",
-          boxShadow: "-8px 0 32px rgba(15,14,13,0.1)",
-          fontFamily: "'DM Sans', sans-serif",
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            padding: "1rem 1.25rem 0.75rem",
-            borderBottom: "1px solid var(--rv-border)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <GapIcon />
+      <div className="fixed top-14 right-0 bottom-0 w-[440px] z-[91] bg-rv-paper border-l border-rv-border flex flex-col shadow-[-8px_0_32px_rgba(15,14,13,0.1)]">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-rv-border shrink-0">
+          <div className="flex items-center gap-2">
+            <GIcon />
             <div>
-              <div
-                style={{
-                  fontSize: "0.8rem",
-                  fontWeight: 700,
-                  color: "var(--rv-ink)",
-                }}
-              >
+              <div className="text-[0.8rem] font-bold text-rv-ink">
                 Career Gap Explainer
               </div>
-              <div style={{ fontSize: "0.65rem", color: "var(--rv-muted)" }}>
+              <div className="text-[0.65rem] text-rv-muted">
                 Professional explanations for employment gaps
               </div>
             </div>
           </div>
           <button
             onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--rv-muted)",
-              fontSize: "1.1rem",
-              lineHeight: 1,
-              padding: 4,
-            }}
+            className="bg-transparent border-0 cursor-pointer text-rv-muted text-lg leading-none p-1 hover:text-rv-ink transition-colors"
           >
             ×
           </button>
         </div>
-
-        {/* Body */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "1rem 1.25rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.9rem",
-          }}
-        >
-          {/* Analyse button */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3.5">
           <button
             onClick={handleAnalyse}
-            disabled={loading || !hasExperience}
-            style={{
-              width: "100%",
-              padding: "0.6rem",
-              background:
-                loading || !hasExperience
-                  ? "var(--rv-muted)"
-                  : "var(--rv-accent)",
-              color: "#fff",
-              border: "none",
-              borderRadius: 2,
-              fontSize: "0.8rem",
-              fontWeight: 600,
-              cursor: loading || !hasExperience ? "not-allowed" : "pointer",
-              fontFamily: "inherit",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-            }}
+            disabled={loading || !hasExp}
+            className={`w-full py-2.5 border-0 rounded-sm text-white text-[0.8rem] font-semibold flex items-center justify-center gap-2 transition-colors ${loading || !hasExp ? "bg-rv-muted cursor-not-allowed" : "bg-rv-accent cursor-pointer hover:bg-rv-ink"}`}
           >
             {loading ? (
               <>
-                <Spinner />
+                <Spin />
                 Detecting gaps…
               </>
             ) : (
               <>
-                <GapIcon white />
+                <GIcon white />
                 {gaps.length ? "Re-analyse" : "Detect & Explain Gaps"}
               </>
             )}
           </button>
-
-          {!hasExperience && !loading && (
-            <div
-              style={{
-                fontSize: "0.72rem",
-                color: "var(--rv-muted)",
-                textAlign: "center",
-                lineHeight: 1.5,
-              }}
-            >
+          {!hasExp && !loading && (
+            <div className="text-[0.72rem] text-rv-muted text-center leading-snug">
               Add at least 2 work experience entries to detect gaps.
             </div>
           )}
-
           {error && (
-            <div
-              style={{
-                fontSize: "0.75rem",
-                color: "var(--rv-accent)",
-                background: "rgba(200,75,47,0.07)",
-                border: "1px solid rgba(200,75,47,0.2)",
-                borderRadius: 2,
-                padding: "0.6rem 0.75rem",
-              }}
-            >
+            <div className="text-[0.75rem] text-rv-accent bg-[rgba(200,75,47,0.07)] border border-[rgba(200,75,47,0.2)] rounded-sm px-3 py-2.5">
               {error}
             </div>
           )}
-
-          {/* No gaps found */}
           {!loading &&
             !error &&
             gaps.length === 0 &&
-            hasExperience &&
+            hasExp &&
             expItems.length >= 2 && (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "1.5rem 1rem",
-                  color: "var(--rv-muted)",
-                }}
-              >
-                <div style={{ fontSize: "2rem", marginBottom: 8 }}>✅</div>
-                <div
-                  style={{
-                    fontSize: "0.78rem",
-                    fontWeight: 600,
-                    marginBottom: 4,
-                    color: "var(--rv-ink)",
-                  }}
-                >
+              <div className="text-center py-6 px-4 text-rv-muted">
+                <div className="text-4xl mb-2">✅</div>
+                <div className="text-[0.78rem] font-semibold mb-1 text-rv-ink">
                   No significant gaps detected
                 </div>
-                <div style={{ fontSize: "0.72rem", lineHeight: 1.6 }}>
-                  Your work history looks continuous. No gaps of 3+ months were
-                  found between positions.
+                <div className="text-[0.72rem] leading-relaxed">
+                  Your work history looks continuous. No gaps of 3+ months
+                  found.
                 </div>
               </div>
             )}
-
-          {/* Gap cards */}
           {gaps.map((gap, i) => (
             <div
               key={i}
-              style={{
-                border: "1px solid var(--rv-border)",
-                borderRadius: 3,
-                overflow: "hidden",
-              }}
+              className="border border-rv-border rounded-[3px] overflow-hidden"
             >
-              {/* Gap header — collapsible */}
               <button
-                onClick={() => toggleExpand(i)}
-                style={{
-                  width: "100%",
-                  padding: "0.65rem 0.85rem",
-                  background: "var(--rv-cream)",
-                  border: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  borderBottom: expanded.has(i)
-                    ? "1px solid var(--rv-border)"
-                    : "none",
-                }}
+                onClick={() => toggle(i)}
+                className={`w-full px-3.5 py-2.5 bg-rv-cream border-0 flex items-center justify-between cursor-pointer ${expanded.has(i) ? "border-b border-rv-border" : ""}`}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div className="flex items-center gap-2">
                   <span
+                    className="text-[0.6rem] font-bold px-2 py-0.5 rounded-full"
                     style={{
-                      fontSize: "0.6rem",
-                      fontWeight: 700,
-                      padding: "2px 8px",
-                      borderRadius: 99,
                       background:
                         gap.months >= 12
                           ? "rgba(200,75,47,0.12)"
@@ -325,104 +195,44 @@ export default function CareerGapPanel({
                   >
                     {gap.months} month{gap.months !== 1 ? "s" : ""}
                   </span>
-                  <span
-                    style={{
-                      fontSize: "0.72rem",
-                      fontWeight: 600,
-                      color: "var(--rv-ink)",
-                    }}
-                  >
+                  <span className="text-[0.72rem] font-semibold text-rv-ink">
                     {gap.from} → {gap.to}
                   </span>
                 </div>
-                <span style={{ fontSize: "0.7rem", color: "var(--rv-muted)" }}>
+                <span className="text-[0.7rem] text-rv-muted">
                   {expanded.has(i) ? "▲" : "▼"}
                 </span>
               </button>
-
-              {/* Explanations */}
               {expanded.has(i) && (
-                <div
-                  style={{
-                    padding: "0.75rem",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 8,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "0.65rem",
-                      color: "var(--rv-muted)",
-                      marginBottom: 2,
-                    }}
-                  >
-                    Choose an explanation to use in interviews or your resume
-                    summary:
+                <div className="p-3 flex flex-col gap-2">
+                  <div className="text-[0.65rem] text-rv-muted">
+                    Choose an explanation for interviews or your resume summary:
                   </div>
                   {gap.explanations.map((ex, j) => {
-                    const copyKey = `${i}-${j}`;
+                    const ck = `${i}-${j}`;
                     return (
                       <div
                         key={j}
-                        style={{
-                          border: "1px solid var(--rv-border)",
-                          borderRadius: 2,
-                          background: "var(--rv-white)",
-                          overflow: "hidden",
-                        }}
+                        className="border border-rv-border rounded-sm bg-rv-white overflow-hidden"
                       >
-                        {/* Reason label */}
-                        <div
-                          style={{
-                            padding: "0.3rem 0.65rem",
-                            background: "var(--rv-cream)",
-                            borderBottom: "1px solid var(--rv-border)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: "0.65rem",
-                              fontWeight: 700,
-                              color: "var(--rv-ink)",
-                            }}
-                          >
+                        <div className="flex items-center justify-between px-2.5 py-1.5 bg-rv-cream border-b border-rv-border">
+                          <span className="text-[0.65rem] font-bold text-rv-ink">
                             {ex.reason}
                           </span>
                           <button
-                            onClick={() => handleCopy(ex.text, copyKey)}
+                            onClick={() => handleCopy(ex.text, ck)}
+                            className="text-[0.6rem] font-semibold px-2 py-0.5 border border-rv-border rounded-sm cursor-pointer transition-colors"
                             style={{
-                              fontSize: "0.6rem",
-                              fontWeight: 600,
-                              padding: "2px 8px",
-                              border: "1px solid var(--rv-border)",
-                              borderRadius: 2,
                               background:
-                                copied === copyKey
-                                  ? "#dcfce7"
-                                  : "var(--rv-white)",
+                                copied === ck ? "#dcfce7" : "var(--rv-white)",
                               color:
-                                copied === copyKey
-                                  ? "#166534"
-                                  : "var(--rv-muted)",
-                              cursor: "pointer",
-                              fontFamily: "inherit",
+                                copied === ck ? "#166534" : "var(--rv-muted)",
                             }}
                           >
-                            {copied === copyKey ? "✓ Copied" : "Copy"}
+                            {copied === ck ? "✓ Copied" : "Copy"}
                           </button>
                         </div>
-                        <div
-                          style={{
-                            padding: "0.55rem 0.65rem",
-                            fontSize: "0.73rem",
-                            color: "var(--rv-ink)",
-                            lineHeight: 1.6,
-                          }}
-                        >
+                        <div className="px-2.5 py-2 text-[0.73rem] text-rv-ink leading-relaxed">
                           {ex.text}
                         </div>
                       </div>
@@ -432,31 +242,15 @@ export default function CareerGapPanel({
               )}
             </div>
           ))}
-
-          {/* Empty state */}
-          {!loading && !error && gaps.length === 0 && !hasExperience && (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "2rem 1rem",
-                color: "var(--rv-muted)",
-              }}
-            >
-              <div style={{ fontSize: "2rem", marginBottom: 8 }}>📅</div>
-              <div
-                style={{
-                  fontSize: "0.78rem",
-                  fontWeight: 600,
-                  marginBottom: 4,
-                  color: "var(--rv-ink)",
-                }}
-              >
+          {!loading && !error && gaps.length === 0 && !hasExp && (
+            <div className="text-center py-8 px-4 text-rv-muted">
+              <div className="text-4xl mb-2">📅</div>
+              <div className="text-[0.78rem] font-semibold mb-1 text-rv-ink">
                 Career Gap Explainer
               </div>
-              <div style={{ fontSize: "0.72rem", lineHeight: 1.65 }}>
-                Automatically detects gaps of 3+ months in your work history and
-                generates professional explanations you can use in interviews or
-                your resume summary.
+              <div className="text-[0.72rem] leading-relaxed">
+                Detects gaps of 3+ months and generates professional
+                explanations for interviews or your resume summary.
               </div>
             </div>
           )}
@@ -466,37 +260,32 @@ export default function CareerGapPanel({
   );
 }
 
-function GapIcon({ white = false }: { white?: boolean }) {
+function GIcon({ white = false }: { white?: boolean }) {
   return (
     <svg
       viewBox="0 0 16 16"
-      style={{
-        width: 14,
-        height: 14,
-        fill: "none",
-        stroke: white ? "#fff" : "var(--rv-accent)",
-        strokeWidth: 1.5,
-        flexShrink: 0,
-      }}
+      width={14}
+      height={14}
+      fill="none"
+      stroke={white ? "#fff" : "var(--rv-accent)"}
+      strokeWidth={1.5}
+      className="shrink-0"
     >
       <rect x="1" y="2" width="6" height="12" rx="1" />
       <rect x="9" y="2" width="6" height="12" rx="1" />
     </svg>
   );
 }
-function Spinner() {
+function Spin() {
   return (
     <svg
       viewBox="0 0 16 16"
-      style={{
-        width: 14,
-        height: 14,
-        fill: "none",
-        stroke: "#fff",
-        strokeWidth: 1.5,
-        animation: "rv-spin 0.7s linear infinite",
-        flexShrink: 0,
-      }}
+      width={14}
+      height={14}
+      fill="none"
+      stroke="#fff"
+      strokeWidth={1.5}
+      className="shrink-0 animate-spin"
     >
       <circle
         cx="8"

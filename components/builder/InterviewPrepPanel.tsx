@@ -1,690 +1,3 @@
-// "use client";
-
-// import { useState, useEffect, useCallback } from "react";
-// import type { ResumeData, ResumeSection } from "@/types/resume";
-
-// interface Question {
-//   category:
-//     | "behavioral"
-//     | "technical"
-//     | "situational"
-//     | "culture"
-//     | "resume_specific";
-//   difficulty: "easy" | "medium" | "hard";
-//   question: string;
-//   whyAsked: string;
-//   tipToAnswer: string;
-// }
-
-// interface Props {
-//   open: boolean;
-//   onClose: () => void;
-//   resume: ResumeData;
-//   sections: ResumeSection[];
-// }
-
-// type QType = "behavioral" | "technical" | "situational" | "culture";
-// const ALL_TYPES: QType[] = [
-//   "behavioral",
-//   "technical",
-//   "situational",
-//   "culture",
-// ];
-
-// const CAT_COLOR: Record<string, string> = {
-//   behavioral: "#1e3a5f",
-//   technical: "#2d5a3d",
-//   situational: "#6b3fa0",
-//   culture: "#b7791f",
-//   resume_specific: "#c84b2f",
-// };
-// const CAT_BG: Record<string, string> = {
-//   behavioral: "rgba(30,58,95,0.08)",
-//   technical: "rgba(45,90,61,0.08)",
-//   situational: "rgba(107,63,160,0.08)",
-//   culture: "rgba(183,121,31,0.08)",
-//   resume_specific: "rgba(200,75,47,0.08)",
-// };
-// const DIFF_COLOR: Record<string, string> = {
-//   easy: "#2d7a4f",
-//   medium: "#b7791f",
-//   hard: "#c84b2f",
-// };
-// const CAT_LABEL: Record<string, string> = {
-//   behavioral: "Behavioral",
-//   technical: "Technical",
-//   situational: "Situational",
-//   culture: "Culture Fit",
-//   resume_specific: "Resume-Specific",
-// };
-
-// function buildResumeText(
-//   resume: ResumeData,
-//   sections: ResumeSection[],
-// ): string {
-//   const lines: string[] = [];
-//   const p = resume.personalInfo;
-//   if (p?.fullName) lines.push(p.fullName);
-//   if (p?.jobTitle) lines.push(p.jobTitle);
-//   const sorted = [...sections].sort((a, b) => a.order - b.order);
-//   for (const s of sorted) {
-//     lines.push(`\n${s.title.toUpperCase()}`);
-//     const c = s.content;
-//     if (
-//       s.type === "summary" &&
-//       c &&
-//       typeof c === "object" &&
-//       "text" in (c as object)
-//     ) {
-//       lines.push((c as { text: string }).text ?? "");
-//     } else if (Array.isArray(c)) {
-//       for (const item of c as Record<string, unknown>[]) {
-//         const parts: string[] = [];
-//         if (item.role) parts.push(String(item.role));
-//         if (item.company) parts.push(String(item.company));
-//         if (item.institution) parts.push(String(item.institution));
-//         if (item.degree) parts.push(String(item.degree));
-//         if (item.name) parts.push(String(item.name));
-//         if (parts.length) lines.push(parts.join(" | "));
-//         if (Array.isArray(item.bullets))
-//           for (const b of item.bullets as string[]) if (b) lines.push(`• ${b}`);
-//         if (item.description) lines.push(String(item.description));
-//       }
-//     } else if (c && typeof c === "object" && "categories" in (c as object)) {
-//       for (const cat of (
-//         c as { categories: { name: string; skills: string }[] }
-//       ).categories) {
-//         lines.push(`${cat.name}: ${cat.skills}`);
-//       }
-//     }
-//   }
-//   return lines.filter(Boolean).join("\n");
-// }
-
-// const inp: React.CSSProperties = {
-//   width: "100%",
-//   padding: "0.5rem 0.75rem",
-//   border: "1px solid var(--rv-border)",
-//   borderRadius: 2,
-//   background: "var(--rv-white)",
-//   color: "var(--rv-ink)",
-//   fontSize: "0.78rem",
-//   fontFamily: "inherit",
-//   outline: "none",
-//   boxSizing: "border-box",
-// };
-
-// export default function InterviewPrepPanel({
-//   open,
-//   onClose,
-//   resume,
-//   sections,
-// }: Props) {
-//   const [jobDescription, setJobDescription] = useState("");
-//   const [selectedTypes, setSelectedTypes] = useState<QType[]>([
-//     "behavioral",
-//     "technical",
-//     "situational",
-//   ]);
-//   const [questions, setQuestions] = useState<Question[]>([]);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState("");
-//   const [activeFilter, setActiveFilter] = useState<string>("all");
-//   const [expandedIdx, setExpandedIdx] = useState<Set<number>>(new Set());
-
-//   useEffect(() => {
-//     if (open) {
-//       setQuestions([]);
-//       setError("");
-//       setExpandedIdx(new Set());
-//       setActiveFilter("all");
-//     }
-//   }, [open]);
-
-//   useEffect(() => {
-//     function onKey(e: KeyboardEvent) {
-//       if (e.key === "Escape") onClose();
-//     }
-//     if (open) document.addEventListener("keydown", onKey);
-//     return () => document.removeEventListener("keydown", onKey);
-//   }, [open, onClose]);
-
-//   function toggleType(t: QType) {
-//     setSelectedTypes((prev) =>
-//       prev.includes(t)
-//         ? prev.length > 1
-//           ? prev.filter((x) => x !== t)
-//           : prev // keep at least one
-//         : [...prev, t],
-//     );
-//   }
-
-//   const handleGenerate = useCallback(async () => {
-//     setLoading(true);
-//     setError("");
-//     setQuestions([]);
-//     setExpandedIdx(new Set());
-//     try {
-//       const resumeText = buildResumeText(resume, sections);
-//       const res = await fetch("/api/ai/interview", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//           resumeText,
-//           jobDescription,
-//           questionTypes: selectedTypes,
-//         }),
-//       });
-//       if (!res.ok) throw new Error();
-//       const data = await res.json();
-//       setQuestions(data.questions ?? []);
-//       setActiveFilter("all");
-//     } catch {
-//       setError("Something went wrong. Please try again.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   }, [resume, sections, jobDescription, selectedTypes]);
-
-//   function toggleExpand(i: number) {
-//     setExpandedIdx((prev) => {
-//       const next = new Set(prev);
-//       next.has(i) ? next.delete(i) : next.add(i);
-//       return next;
-//     });
-//   }
-
-//   if (!open) return null;
-
-//   const categories = ["all", "resume_specific", ...selectedTypes] as string[];
-//   const filtered =
-//     activeFilter === "all"
-//       ? questions
-//       : questions.filter((q) => q.category === activeFilter);
-
-//   const counts: Record<string, number> = { all: questions.length };
-//   for (const q of questions) counts[q.category] = (counts[q.category] ?? 0) + 1;
-
-//   return (
-//     <>
-//       <div
-//         onClick={onClose}
-//         style={{
-//           position: "fixed",
-//           inset: 0,
-//           zIndex: 90,
-//           background: "rgba(15,14,13,0.35)",
-//         }}
-//       />
-
-//       <div
-//         style={{
-//           position: "fixed",
-//           top: 56,
-//           right: 0,
-//           bottom: 0,
-//           width: 460,
-//           zIndex: 91,
-//           background: "var(--rv-paper)",
-//           borderLeft: "1px solid var(--rv-border)",
-//           display: "flex",
-//           flexDirection: "column",
-//           boxShadow: "-8px 0 32px rgba(15,14,13,0.1)",
-//           fontFamily: "'DM Sans', sans-serif",
-//         }}
-//       >
-//         {/* Header */}
-//         <div
-//           style={{
-//             padding: "1rem 1.25rem 0.75rem",
-//             borderBottom: "1px solid var(--rv-border)",
-//             display: "flex",
-//             alignItems: "center",
-//             justifyContent: "space-between",
-//             flexShrink: 0,
-//           }}
-//         >
-//           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-//             <InterviewIcon />
-//             <div>
-//               <div
-//                 style={{
-//                   fontSize: "0.8rem",
-//                   fontWeight: 700,
-//                   color: "var(--rv-ink)",
-//                 }}
-//               >
-//                 Interview Prep
-//               </div>
-//               <div style={{ fontSize: "0.65rem", color: "var(--rv-muted)" }}>
-//                 AI questions tailored to your resume
-//               </div>
-//             </div>
-//           </div>
-//           <button
-//             onClick={onClose}
-//             style={{
-//               background: "none",
-//               border: "none",
-//               cursor: "pointer",
-//               color: "var(--rv-muted)",
-//               fontSize: "1.1rem",
-//               lineHeight: 1,
-//               padding: 4,
-//             }}
-//           >
-//             ×
-//           </button>
-//         </div>
-
-//         {/* Body */}
-//         <div
-//           style={{
-//             flex: 1,
-//             overflowY: "auto",
-//             padding: "1rem 1.25rem",
-//             display: "flex",
-//             flexDirection: "column",
-//             gap: "0.85rem",
-//           }}
-//         >
-//           {/* Type selector */}
-//           <div>
-//             <SLabel>Question categories</SLabel>
-//             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-//               {ALL_TYPES.map((t) => {
-//                 const on = selectedTypes.includes(t);
-//                 return (
-//                   <button
-//                     key={t}
-//                     onClick={() => toggleType(t)}
-//                     style={{
-//                       fontSize: "0.68rem",
-//                       fontWeight: 600,
-//                       padding: "3px 10px",
-//                       borderRadius: 99,
-//                       border: `1.5px solid ${on ? CAT_COLOR[t] : "var(--rv-border)"}`,
-//                       background: on ? CAT_BG[t] : "var(--rv-white)",
-//                       color: on ? CAT_COLOR[t] : "var(--rv-muted)",
-//                       cursor: "pointer",
-//                       fontFamily: "inherit",
-//                     }}
-//                   >
-//                     {CAT_LABEL[t]}
-//                   </button>
-//                 );
-//               })}
-//             </div>
-//           </div>
-
-//           {/* JD input */}
-//           <div>
-//             <SLabel>
-//               Job Description{" "}
-//               <span
-//                 style={{
-//                   fontWeight: 400,
-//                   textTransform: "none",
-//                   letterSpacing: 0,
-//                 }}
-//               >
-//                 (optional — improves targeting)
-//               </span>
-//             </SLabel>
-//             <textarea
-//               value={jobDescription}
-//               onChange={(e) => setJobDescription(e.target.value)}
-//               rows={3}
-//               placeholder="Paste the job description here for role-specific questions…"
-//               style={{ ...inp, resize: "vertical", lineHeight: 1.5 }}
-//             />
-//           </div>
-
-//           {/* Generate */}
-//           <button
-//             onClick={handleGenerate}
-//             disabled={loading}
-//             style={{
-//               width: "100%",
-//               padding: "0.6rem",
-//               background: loading ? "var(--rv-muted)" : "var(--rv-accent)",
-//               color: "#fff",
-//               border: "none",
-//               borderRadius: 2,
-//               fontSize: "0.8rem",
-//               fontWeight: 600,
-//               cursor: loading ? "not-allowed" : "pointer",
-//               fontFamily: "inherit",
-//               display: "flex",
-//               alignItems: "center",
-//               justifyContent: "center",
-//               gap: 8,
-//             }}
-//           >
-//             {loading ? (
-//               <>
-//                 <Spinner />
-//                 Generating questions…
-//               </>
-//             ) : (
-//               <>
-//                 <InterviewIcon white />
-//                 {questions.length ? "Regenerate" : "Generate Questions"}
-//               </>
-//             )}
-//           </button>
-
-//           {error && (
-//             <div
-//               style={{
-//                 fontSize: "0.75rem",
-//                 color: "var(--rv-accent)",
-//                 background: "rgba(200,75,47,0.07)",
-//                 border: "1px solid rgba(200,75,47,0.2)",
-//                 borderRadius: 2,
-//                 padding: "0.6rem 0.75rem",
-//               }}
-//             >
-//               {error}
-//             </div>
-//           )}
-
-//           {/* Results */}
-//           {questions.length > 0 && (
-//             <div>
-//               {/* Category filter pills */}
-//               <div
-//                 style={{
-//                   display: "flex",
-//                   flexWrap: "wrap",
-//                   gap: 5,
-//                   marginBottom: "0.85rem",
-//                 }}
-//               >
-//                 {categories
-//                   .filter((c) => counts[c])
-//                   .map((cat) => (
-//                     <button
-//                       key={cat}
-//                       onClick={() => setActiveFilter(cat)}
-//                       style={{
-//                         fontSize: "0.65rem",
-//                         fontWeight: 600,
-//                         padding: "3px 10px",
-//                         borderRadius: 99,
-//                         border: `1.5px solid ${activeFilter === cat ? (CAT_COLOR[cat] ?? "var(--rv-ink)") : "var(--rv-border)"}`,
-//                         background:
-//                           activeFilter === cat
-//                             ? (CAT_BG[cat] ?? "var(--rv-cream)")
-//                             : "var(--rv-white)",
-//                         color:
-//                           activeFilter === cat
-//                             ? (CAT_COLOR[cat] ?? "var(--rv-ink)")
-//                             : "var(--rv-muted)",
-//                         cursor: "pointer",
-//                         fontFamily: "inherit",
-//                       }}
-//                     >
-//                       {cat === "all" ? "All" : CAT_LABEL[cat]} ({counts[cat]})
-//                     </button>
-//                   ))}
-//               </div>
-
-//               {/* Question cards */}
-//               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-//                 {filtered.map((q, i) => {
-//                   const isOpen = expandedIdx.has(i);
-//                   return (
-//                     <div
-//                       key={i}
-//                       style={{
-//                         border: "1px solid var(--rv-border)",
-//                         borderRadius: 3,
-//                         overflow: "hidden",
-//                         background: "var(--rv-white)",
-//                       }}
-//                     >
-//                       {/* Question row */}
-//                       <button
-//                         onClick={() => toggleExpand(i)}
-//                         style={{
-//                           width: "100%",
-//                           padding: "0.65rem 0.75rem",
-//                           background: "none",
-//                           border: "none",
-//                           cursor: "pointer",
-//                           fontFamily: "inherit",
-//                           display: "flex",
-//                           alignItems: "flex-start",
-//                           gap: 8,
-//                           textAlign: "left",
-//                         }}
-//                       >
-//                         {/* Badges */}
-//                         <div
-//                           style={{
-//                             display: "flex",
-//                             flexDirection: "column",
-//                             gap: 3,
-//                             flexShrink: 0,
-//                             paddingTop: 2,
-//                           }}
-//                         >
-//                           <span
-//                             style={{
-//                               fontSize: "0.55rem",
-//                               fontWeight: 700,
-//                               padding: "1px 5px",
-//                               borderRadius: 99,
-//                               background:
-//                                 CAT_BG[q.category] ?? "var(--rv-cream)",
-//                               color: CAT_COLOR[q.category] ?? "var(--rv-muted)",
-//                             }}
-//                           >
-//                             {CAT_LABEL[q.category]}
-//                           </span>
-//                           <span
-//                             style={{
-//                               fontSize: "0.55rem",
-//                               fontWeight: 700,
-//                               padding: "1px 5px",
-//                               borderRadius: 99,
-//                               background: "rgba(0,0,0,0.04)",
-//                               color: DIFF_COLOR[q.difficulty],
-//                             }}
-//                           >
-//                             {q.difficulty}
-//                           </span>
-//                         </div>
-//                         {/* Question text */}
-//                         <span
-//                           style={{
-//                             fontSize: "0.73rem",
-//                             color: "var(--rv-ink)",
-//                             lineHeight: 1.55,
-//                             flex: 1,
-//                           }}
-//                         >
-//                           {q.question}
-//                         </span>
-//                         <span
-//                           style={{
-//                             fontSize: "0.65rem",
-//                             color: "var(--rv-muted)",
-//                             flexShrink: 0,
-//                             paddingTop: 2,
-//                           }}
-//                         >
-//                           {isOpen ? "▲" : "▼"}
-//                         </span>
-//                       </button>
-
-//                       {/* Expanded tips */}
-//                       {isOpen && (
-//                         <div
-//                           style={{
-//                             padding: "0 0.75rem 0.75rem",
-//                             display: "flex",
-//                             flexDirection: "column",
-//                             gap: 8,
-//                             borderTop: "1px solid var(--rv-border)",
-//                           }}
-//                         >
-//                           <TipBlock
-//                             label="Why they ask this"
-//                             text={q.whyAsked}
-//                             color="#1e3a5f"
-//                             bg="rgba(30,58,95,0.05)"
-//                           />
-//                           <TipBlock
-//                             label="How to answer"
-//                             text={q.tipToAnswer}
-//                             color="#2d7a4f"
-//                             bg="rgba(45,122,79,0.05)"
-//                           />
-//                         </div>
-//                       )}
-//                     </div>
-//                   );
-//                 })}
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Empty state */}
-//           {!questions.length && !loading && !error && (
-//             <div
-//               style={{
-//                 textAlign: "center",
-//                 padding: "2rem 1rem",
-//                 color: "var(--rv-muted)",
-//               }}
-//             >
-//               <div style={{ fontSize: "2rem", marginBottom: 8 }}>🎤</div>
-//               <div
-//                 style={{
-//                   fontSize: "0.78rem",
-//                   fontWeight: 600,
-//                   marginBottom: 4,
-//                   color: "var(--rv-ink)",
-//                 }}
-//               >
-//                 Prepare for Your Interview
-//               </div>
-//               <div style={{ fontSize: "0.72rem", lineHeight: 1.65 }}>
-//                 Generates 12–15 questions tailored to your specific resume —
-//                 including questions about your actual jobs, skills, and
-//                 projects. Paste a JD for role-specific targeting.
-//               </div>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-//     </>
-//   );
-// }
-
-// function TipBlock({
-//   label,
-//   text,
-//   color,
-//   bg,
-// }: {
-//   label: string;
-//   text: string;
-//   color: string;
-//   bg: string;
-// }) {
-//   return (
-//     <div
-//       style={{
-//         background: bg,
-//         borderRadius: 2,
-//         padding: "0.5rem 0.65rem",
-//         borderLeft: `2px solid ${color}`,
-//         marginTop: 6,
-//       }}
-//     >
-//       <div
-//         style={{
-//           fontSize: "0.58rem",
-//           fontWeight: 700,
-//           color,
-//           letterSpacing: "0.06em",
-//           textTransform: "uppercase",
-//           marginBottom: 3,
-//         }}
-//       >
-//         {label}
-//       </div>
-//       <div
-//         style={{ fontSize: "0.7rem", color: "var(--rv-ink)", lineHeight: 1.55 }}
-//       >
-//         {text}
-//       </div>
-//     </div>
-//   );
-// }
-// function SLabel({ children }: { children: React.ReactNode }) {
-//   return (
-//     <div
-//       style={{
-//         fontSize: "0.65rem",
-//         fontWeight: 700,
-//         color: "var(--rv-muted)",
-//         textTransform: "uppercase",
-//         letterSpacing: "0.06em",
-//         marginBottom: 5,
-//       }}
-//     >
-//       {children}
-//     </div>
-//   );
-// }
-// function InterviewIcon({ white = false }: { white?: boolean }) {
-//   return (
-//     <svg
-//       viewBox="0 0 16 16"
-//       style={{
-//         width: 14,
-//         height: 14,
-//         fill: "none",
-//         stroke: white ? "#fff" : "var(--rv-accent)",
-//         strokeWidth: 1.5,
-//         flexShrink: 0,
-//       }}
-//     >
-//       <path d="M13 2H3a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l2 3 2-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z" />
-//       <path d="M5 6h6M5 8.5h3" strokeLinecap="round" />
-//     </svg>
-//   );
-// }
-// function Spinner() {
-//   return (
-//     <svg
-//       viewBox="0 0 16 16"
-//       style={{
-//         width: 14,
-//         height: 14,
-//         fill: "none",
-//         stroke: "#fff",
-//         strokeWidth: 1.5,
-//         animation: "rv-spin 0.7s linear infinite",
-//         flexShrink: 0,
-//       }}
-//     >
-//       <circle
-//         cx="8"
-//         cy="8"
-//         r="6"
-//         strokeDasharray="28"
-//         strokeDashoffset="10"
-//         strokeLinecap="round"
-//       />
-//     </svg>
-//   );
-// }
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -702,14 +15,12 @@ interface Question {
   whyAsked: string;
   tipToAnswer: string;
 }
-
 interface Props {
   open: boolean;
   onClose: () => void;
   resume: ResumeData;
   sections: ResumeSection[];
 }
-
 type QType = "behavioral" | "technical" | "situational" | "culture";
 const ALL_TYPES: QType[] = [
   "behavioral",
@@ -717,7 +28,6 @@ const ALL_TYPES: QType[] = [
   "situational",
   "culture",
 ];
-
 const CAT_COLOR: Record<string, string> = {
   behavioral: "#1e3a5f",
   technical: "#2d5a3d",
@@ -732,12 +42,12 @@ const CAT_BG: Record<string, string> = {
   culture: "rgba(183,121,31,0.08)",
   resume_specific: "rgba(200,75,47,0.08)",
 };
-const DIFF_COLOR: Record<string, string> = {
+const DIFF_COL: Record<string, string> = {
   easy: "#2d7a4f",
   medium: "#b7791f",
   hard: "#c84b2f",
 };
-const CAT_LABEL: Record<string, string> = {
+const CAT_LBL: Record<string, string> = {
   behavioral: "Behavioral",
   technical: "Technical",
   situational: "Situational",
@@ -745,16 +55,12 @@ const CAT_LABEL: Record<string, string> = {
   resume_specific: "Resume-Specific",
 };
 
-function buildResumeText(
-  resume: ResumeData,
-  sections: ResumeSection[],
-): string {
+function buildText(resume: ResumeData, sections: ResumeSection[]): string {
   const lines: string[] = [];
   const p = resume.personalInfo;
   if (p?.fullName) lines.push(p.fullName);
   if (p?.jobTitle) lines.push(p.jobTitle);
-  const sorted = [...sections].sort((a, b) => a.order - b.order);
-  for (const s of sorted) {
+  for (const s of [...sections].sort((a, b) => a.order - b.order)) {
     lines.push(`\n${s.title.toUpperCase()}`);
     const c = s.content;
     if (
@@ -762,44 +68,29 @@ function buildResumeText(
       c &&
       typeof c === "object" &&
       "text" in (c as object)
-    ) {
+    )
       lines.push((c as { text: string }).text ?? "");
-    } else if (Array.isArray(c)) {
+    else if (Array.isArray(c))
       for (const item of c as Record<string, unknown>[]) {
-        const parts: string[] = [];
-        if (item.role) parts.push(String(item.role));
-        if (item.company) parts.push(String(item.company));
-        if (item.institution) parts.push(String(item.institution));
-        if (item.degree) parts.push(String(item.degree));
-        if (item.name) parts.push(String(item.name));
-        if (parts.length) lines.push(parts.join(" | "));
+        const p: string[] = [];
+        if (item.role) p.push(String(item.role));
+        if (item.company) p.push(String(item.company));
+        if (item.institution) p.push(String(item.institution));
+        if (item.degree) p.push(String(item.degree));
+        if (item.name) p.push(String(item.name));
+        if (p.length) lines.push(p.join(" | "));
         if (Array.isArray(item.bullets))
           for (const b of item.bullets as string[]) if (b) lines.push(`• ${b}`);
         if (item.description) lines.push(String(item.description));
       }
-    } else if (c && typeof c === "object" && "categories" in (c as object)) {
+    else if (c && typeof c === "object" && "categories" in (c as object))
       for (const cat of (
         c as { categories: { name: string; skills: string }[] }
-      ).categories) {
+      ).categories)
         lines.push(`${cat.name}: ${cat.skills}`);
-      }
-    }
   }
   return lines.filter(Boolean).join("\n");
 }
-
-const inp: React.CSSProperties = {
-  width: "100%",
-  padding: "0.5rem 0.75rem",
-  border: "1px solid var(--rv-border)",
-  borderRadius: 2,
-  background: "var(--rv-white)",
-  color: "var(--rv-ink)",
-  fontSize: "0.78rem",
-  fontFamily: "inherit",
-  outline: "none",
-  boxSizing: "border-box",
-};
 
 export default function InterviewPrepPanel({
   open,
@@ -807,8 +98,8 @@ export default function InterviewPrepPanel({
   resume,
   sections,
 }: Props) {
-  const [jobDescription, setJobDescription] = useState("");
-  const [selectedTypes, setSelectedTypes] = useState<QType[]>([
+  const [jd, setJd] = useState("");
+  const [selTypes, setSelTypes] = useState<QType[]>([
     "behavioral",
     "technical",
     "situational",
@@ -816,18 +107,17 @@ export default function InterviewPrepPanel({
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [activeFilter, setActiveFilter] = useState<string>("all");
-  const [expandedIdx, setExpandedIdx] = useState<Set<number>>(new Set());
+  const [filter, setFilter] = useState("all");
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (open) {
       setQuestions([]);
       setError("");
-      setExpandedIdx(new Set());
-      setActiveFilter("all");
+      setExpanded(new Set());
+      setFilter("all");
     }
   }, [open]);
-
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -837,11 +127,11 @@ export default function InterviewPrepPanel({
   }, [open, onClose]);
 
   function toggleType(t: QType) {
-    setSelectedTypes((prev) =>
+    setSelTypes((prev) =>
       prev.includes(t)
         ? prev.length > 1
           ? prev.filter((x) => x !== t)
-          : prev // keep at least one
+          : prev
         : [...prev, t],
     );
   }
@@ -850,387 +140,207 @@ export default function InterviewPrepPanel({
     setLoading(true);
     setError("");
     setQuestions([]);
-    setExpandedIdx(new Set());
+    setExpanded(new Set());
     try {
-      const resumeText = buildResumeText(resume, sections);
       const res = await fetch("/api/ai/interview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          resumeText,
-          jobDescription,
-          questionTypes: selectedTypes,
+          resumeText: buildText(resume, sections),
+          jobDescription: jd,
+          questionTypes: selTypes,
         }),
       });
       if (res.status === 402) {
-        const data = await res.json();
-        throw new Error(
-          data.error ??
-            "Free plan limit reached. Upgrade to Pro for unlimited AI uses.",
-        );
+        const d = await res.json();
+        throw new Error(d.error ?? "Free plan limit reached.");
       }
-      if (!res.ok) throw new Error("Something went wrong. Please try again.");
+      if (!res.ok) throw new Error("Something went wrong.");
       const data = await res.json();
       setQuestions(data.questions ?? []);
-      setActiveFilter("all");
+      setFilter("all");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [resume, sections, jobDescription, selectedTypes]);
+  }, [resume, sections, jd, selTypes]);
 
   function toggleExpand(i: number) {
-    setExpandedIdx((prev) => {
-      const next = new Set(prev);
-      next.has(i) ? next.delete(i) : next.add(i);
-      return next;
+    setExpanded((prev) => {
+      const n = new Set(prev);
+      n.has(i) ? n.delete(i) : n.add(i);
+      return n;
     });
   }
 
   if (!open) return null;
-
-  const categories = ["all", "resume_specific", ...selectedTypes] as string[];
+  const cats = ["all", "resume_specific", ...selTypes] as string[];
   const filtered =
-    activeFilter === "all"
+    filter === "all"
       ? questions
-      : questions.filter((q) => q.category === activeFilter);
-
+      : questions.filter((q) => q.category === filter);
   const counts: Record<string, number> = { all: questions.length };
   for (const q of questions) counts[q.category] = (counts[q.category] ?? 0) + 1;
 
   return (
     <>
       <div
+        className="fixed inset-0 z-[90] bg-[rgba(15,14,13,0.35)]"
         onClick={onClose}
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 90,
-          background: "rgba(15,14,13,0.35)",
-        }}
       />
-
-      <div
-        style={{
-          position: "fixed",
-          top: 56,
-          right: 0,
-          bottom: 0,
-          width: 460,
-          zIndex: 91,
-          background: "var(--rv-paper)",
-          borderLeft: "1px solid var(--rv-border)",
-          display: "flex",
-          flexDirection: "column",
-          boxShadow: "-8px 0 32px rgba(15,14,13,0.1)",
-          fontFamily: "'DM Sans', sans-serif",
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            padding: "1rem 1.25rem 0.75rem",
-            borderBottom: "1px solid var(--rv-border)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <InterviewIcon />
+      <div className="fixed top-14 right-0 bottom-0 w-[460px] z-[91] bg-rv-paper border-l border-rv-border flex flex-col shadow-[-8px_0_32px_rgba(15,14,13,0.1)]">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-rv-border shrink-0">
+          <div className="flex items-center gap-2">
+            <IIcon />
             <div>
-              <div
-                style={{
-                  fontSize: "0.8rem",
-                  fontWeight: 700,
-                  color: "var(--rv-ink)",
-                }}
-              >
+              <div className="text-[0.8rem] font-bold text-rv-ink">
                 Interview Prep
               </div>
-              <div style={{ fontSize: "0.65rem", color: "var(--rv-muted)" }}>
+              <div className="text-[0.65rem] text-rv-muted">
                 AI questions tailored to your resume
               </div>
             </div>
           </div>
           <button
             onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--rv-muted)",
-              fontSize: "1.1rem",
-              lineHeight: 1,
-              padding: 4,
-            }}
+            className="bg-transparent border-0 cursor-pointer text-rv-muted text-lg leading-none p-1 hover:text-rv-ink transition-colors"
           >
             ×
           </button>
         </div>
-
-        {/* Body */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "1rem 1.25rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.85rem",
-          }}
-        >
-          {/* Type selector */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3.5">
           <div>
-            <SLabel>Question categories</SLabel>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <SL>Question categories</SL>
+            <div className="flex flex-wrap gap-1.5">
               {ALL_TYPES.map((t) => {
-                const on = selectedTypes.includes(t);
+                const on = selTypes.includes(t);
                 return (
                   <button
                     key={t}
                     onClick={() => toggleType(t)}
+                    className="text-[0.68rem] font-semibold px-2.5 py-0.5 rounded-full cursor-pointer border transition-colors"
                     style={{
-                      fontSize: "0.68rem",
-                      fontWeight: 600,
-                      padding: "3px 10px",
-                      borderRadius: 99,
                       border: `1.5px solid ${on ? CAT_COLOR[t] : "var(--rv-border)"}`,
                       background: on ? CAT_BG[t] : "var(--rv-white)",
                       color: on ? CAT_COLOR[t] : "var(--rv-muted)",
-                      cursor: "pointer",
-                      fontFamily: "inherit",
                     }}
                   >
-                    {CAT_LABEL[t]}
+                    {CAT_LBL[t]}
                   </button>
                 );
               })}
             </div>
           </div>
-
-          {/* JD input */}
           <div>
-            <SLabel>
+            <SL>
               Job Description{" "}
-              <span
-                style={{
-                  fontWeight: 400,
-                  textTransform: "none",
-                  letterSpacing: 0,
-                }}
-              >
+              <span className="font-normal normal-case">
                 (optional — improves targeting)
               </span>
-            </SLabel>
+            </SL>
             <textarea
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
+              value={jd}
+              onChange={(e) => setJd(e.target.value)}
               rows={3}
               placeholder="Paste the job description here for role-specific questions…"
-              style={{ ...inp, resize: "vertical", lineHeight: 1.5 }}
+              className="w-full px-3 py-2 border border-rv-border rounded-sm bg-rv-white text-rv-ink text-[0.78rem] resize-y outline-none leading-snug focus:border-rv-accent transition-colors"
             />
           </div>
-
-          {/* Generate */}
           <button
             onClick={handleGenerate}
             disabled={loading}
-            style={{
-              width: "100%",
-              padding: "0.6rem",
-              background: loading ? "var(--rv-muted)" : "var(--rv-accent)",
-              color: "#fff",
-              border: "none",
-              borderRadius: 2,
-              fontSize: "0.8rem",
-              fontWeight: 600,
-              cursor: loading ? "not-allowed" : "pointer",
-              fontFamily: "inherit",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-            }}
+            className={`w-full py-2.5 border-0 rounded-sm text-white text-[0.8rem] font-semibold flex items-center justify-center gap-2 transition-colors ${loading ? "bg-rv-muted cursor-not-allowed" : "bg-rv-accent cursor-pointer hover:bg-rv-ink"}`}
           >
             {loading ? (
               <>
-                <Spinner />
+                <Spin />
                 Generating questions…
               </>
             ) : (
               <>
-                <InterviewIcon white />
+                <IIcon white />
                 {questions.length ? "Regenerate" : "Generate Questions"}
               </>
             )}
           </button>
-
           {error && (
-            <div
-              style={{
-                fontSize: "0.75rem",
-                color: "var(--rv-accent)",
-                background: "rgba(200,75,47,0.07)",
-                border: "1px solid rgba(200,75,47,0.2)",
-                borderRadius: 2,
-                padding: "0.6rem 0.75rem",
-              }}
-            >
+            <div className="text-[0.75rem] text-rv-accent bg-[rgba(200,75,47,0.07)] border border-[rgba(200,75,47,0.2)] rounded-sm px-3 py-2.5">
               {error}
             </div>
           )}
-
-          {/* Results */}
           {questions.length > 0 && (
             <div>
-              {/* Category filter pills */}
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 5,
-                  marginBottom: "0.85rem",
-                }}
-              >
-                {categories
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {cats
                   .filter((c) => counts[c])
                   .map((cat) => (
                     <button
                       key={cat}
-                      onClick={() => setActiveFilter(cat)}
+                      onClick={() => setFilter(cat)}
+                      className="text-[0.65rem] font-semibold px-2.5 py-0.5 rounded-full cursor-pointer border transition-colors"
                       style={{
-                        fontSize: "0.65rem",
-                        fontWeight: 600,
-                        padding: "3px 10px",
-                        borderRadius: 99,
-                        border: `1.5px solid ${activeFilter === cat ? (CAT_COLOR[cat] ?? "var(--rv-ink)") : "var(--rv-border)"}`,
+                        border: `1.5px solid ${filter === cat ? (CAT_COLOR[cat] ?? "var(--rv-ink)") : "var(--rv-border)"}`,
                         background:
-                          activeFilter === cat
+                          filter === cat
                             ? (CAT_BG[cat] ?? "var(--rv-cream)")
                             : "var(--rv-white)",
                         color:
-                          activeFilter === cat
+                          filter === cat
                             ? (CAT_COLOR[cat] ?? "var(--rv-ink)")
                             : "var(--rv-muted)",
-                        cursor: "pointer",
-                        fontFamily: "inherit",
                       }}
                     >
-                      {cat === "all" ? "All" : CAT_LABEL[cat]} ({counts[cat]})
+                      {cat === "all" ? "All" : CAT_LBL[cat]} ({counts[cat]})
                     </button>
                   ))}
               </div>
-
-              {/* Question cards */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div className="flex flex-col gap-1.5">
                 {filtered.map((q, i) => {
-                  const isOpen = expandedIdx.has(i);
+                  const isOpen = expanded.has(i);
                   return (
                     <div
                       key={i}
-                      style={{
-                        border: "1px solid var(--rv-border)",
-                        borderRadius: 3,
-                        overflow: "hidden",
-                        background: "var(--rv-white)",
-                      }}
+                      className="border border-rv-border rounded-[3px] overflow-hidden bg-rv-white"
                     >
-                      {/* Question row */}
                       <button
                         onClick={() => toggleExpand(i)}
-                        style={{
-                          width: "100%",
-                          padding: "0.65rem 0.75rem",
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          fontFamily: "inherit",
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: 8,
-                          textAlign: "left",
-                        }}
+                        className="w-full px-3 py-2.5 bg-transparent border-0 cursor-pointer text-left flex items-start gap-2"
                       >
-                        {/* Badges */}
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 3,
-                            flexShrink: 0,
-                            paddingTop: 2,
-                          }}
-                        >
+                        <div className="flex flex-col gap-0.5 shrink-0 pt-0.5">
                           <span
+                            className="text-[0.55rem] font-bold px-1.5 py-px rounded-full"
                             style={{
-                              fontSize: "0.55rem",
-                              fontWeight: 700,
-                              padding: "1px 5px",
-                              borderRadius: 99,
                               background:
                                 CAT_BG[q.category] ?? "var(--rv-cream)",
                               color: CAT_COLOR[q.category] ?? "var(--rv-muted)",
                             }}
                           >
-                            {CAT_LABEL[q.category]}
+                            {CAT_LBL[q.category]}
                           </span>
                           <span
-                            style={{
-                              fontSize: "0.55rem",
-                              fontWeight: 700,
-                              padding: "1px 5px",
-                              borderRadius: 99,
-                              background: "rgba(0,0,0,0.04)",
-                              color: DIFF_COLOR[q.difficulty],
-                            }}
+                            className="text-[0.55rem] font-bold px-1.5 py-px rounded-full bg-[rgba(0,0,0,0.04)]"
+                            style={{ color: DIFF_COL[q.difficulty] }}
                           >
                             {q.difficulty}
                           </span>
                         </div>
-                        {/* Question text */}
-                        <span
-                          style={{
-                            fontSize: "0.73rem",
-                            color: "var(--rv-ink)",
-                            lineHeight: 1.55,
-                            flex: 1,
-                          }}
-                        >
+                        <span className="text-[0.73rem] text-rv-ink leading-snug flex-1">
                           {q.question}
                         </span>
-                        <span
-                          style={{
-                            fontSize: "0.65rem",
-                            color: "var(--rv-muted)",
-                            flexShrink: 0,
-                            paddingTop: 2,
-                          }}
-                        >
+                        <span className="text-[0.65rem] text-rv-muted shrink-0 pt-0.5">
                           {isOpen ? "▲" : "▼"}
                         </span>
                       </button>
-
-                      {/* Expanded tips */}
                       {isOpen && (
-                        <div
-                          style={{
-                            padding: "0 0.75rem 0.75rem",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 8,
-                            borderTop: "1px solid var(--rv-border)",
-                          }}
-                        >
-                          <TipBlock
+                        <div className="px-3 pb-3 flex flex-col gap-2 border-t border-rv-border">
+                          <Tip
                             label="Why they ask this"
                             text={q.whyAsked}
                             color="#1e3a5f"
                             bg="rgba(30,58,95,0.05)"
                           />
-                          <TipBlock
+                          <Tip
                             label="How to answer"
                             text={q.tipToAnswer}
                             color="#2d7a4f"
@@ -1244,31 +354,16 @@ export default function InterviewPrepPanel({
               </div>
             </div>
           )}
-
-          {/* Empty state */}
           {!questions.length && !loading && !error && (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "2rem 1rem",
-                color: "var(--rv-muted)",
-              }}
-            >
-              <div style={{ fontSize: "2rem", marginBottom: 8 }}>🎤</div>
-              <div
-                style={{
-                  fontSize: "0.78rem",
-                  fontWeight: 600,
-                  marginBottom: 4,
-                  color: "var(--rv-ink)",
-                }}
-              >
+            <div className="text-center py-8 px-4 text-rv-muted">
+              <div className="text-4xl mb-2">🎤</div>
+              <div className="text-[0.78rem] font-semibold mb-1 text-rv-ink">
                 Prepare for Your Interview
               </div>
-              <div style={{ fontSize: "0.72rem", lineHeight: 1.65 }}>
-                Generates 12–15 questions tailored to your specific resume —
-                including questions about your actual jobs, skills, and
-                projects. Paste a JD for role-specific targeting.
+              <div className="text-[0.72rem] leading-relaxed">
+                Generates 12–15 questions tailored to your resume — including
+                questions about your actual jobs, skills, and projects. Paste a
+                JD for role-specific targeting.
               </div>
             </div>
           )}
@@ -1278,7 +373,7 @@ export default function InterviewPrepPanel({
   );
 }
 
-function TipBlock({
+function Tip({
   label,
   text,
   color,
@@ -1291,81 +386,52 @@ function TipBlock({
 }) {
   return (
     <div
-      style={{
-        background: bg,
-        borderRadius: 2,
-        padding: "0.5rem 0.65rem",
-        borderLeft: `2px solid ${color}`,
-        marginTop: 6,
-      }}
+      className="mt-1.5 rounded-sm px-2.5 py-2 border-l-2"
+      style={{ background: bg, borderColor: color }}
     >
       <div
-        style={{
-          fontSize: "0.58rem",
-          fontWeight: 700,
-          color,
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          marginBottom: 3,
-        }}
+        className="text-[0.58rem] font-bold uppercase tracking-[0.06em] mb-0.5"
+        style={{ color }}
       >
         {label}
       </div>
-      <div
-        style={{ fontSize: "0.7rem", color: "var(--rv-ink)", lineHeight: 1.55 }}
-      >
-        {text}
-      </div>
+      <div className="text-[0.7rem] text-rv-ink leading-snug">{text}</div>
     </div>
   );
 }
-function SLabel({ children }: { children: React.ReactNode }) {
+function SL({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      style={{
-        fontSize: "0.65rem",
-        fontWeight: 700,
-        color: "var(--rv-muted)",
-        textTransform: "uppercase",
-        letterSpacing: "0.06em",
-        marginBottom: 5,
-      }}
-    >
+    <div className="text-[0.65rem] font-bold text-rv-muted uppercase tracking-[0.06em] mb-1.5">
       {children}
     </div>
   );
 }
-function InterviewIcon({ white = false }: { white?: boolean }) {
+function IIcon({ white = false }: { white?: boolean }) {
   return (
     <svg
       viewBox="0 0 16 16"
-      style={{
-        width: 14,
-        height: 14,
-        fill: "none",
-        stroke: white ? "#fff" : "var(--rv-accent)",
-        strokeWidth: 1.5,
-        flexShrink: 0,
-      }}
+      width={14}
+      height={14}
+      fill="none"
+      stroke={white ? "#fff" : "var(--rv-accent)"}
+      strokeWidth={1.5}
+      className="shrink-0"
     >
       <path d="M13 2H3a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l2 3 2-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z" />
       <path d="M5 6h6M5 8.5h3" strokeLinecap="round" />
     </svg>
   );
 }
-function Spinner() {
+function Spin() {
   return (
     <svg
       viewBox="0 0 16 16"
-      style={{
-        width: 14,
-        height: 14,
-        fill: "none",
-        stroke: "#fff",
-        strokeWidth: 1.5,
-        animation: "rv-spin 0.7s linear infinite",
-        flexShrink: 0,
-      }}
+      width={14}
+      height={14}
+      fill="none"
+      stroke="#fff"
+      strokeWidth={1.5}
+      className="shrink-0 animate-spin"
     >
       <circle
         cx="8"
