@@ -15,6 +15,12 @@ import MobileBuilderBlock from "./MobileBuilderBlock";
 import CompletionBar from "./CompletionBar";
 import type { ResumeData, ResumeSection, PersonalInfo } from "@/types/resume";
 
+import {
+  DEFAULT_FONT,
+  DEFAULT_FONT_SIZE,
+  RESUME_FONTS,
+} from "@/lib/resume-constants";
+
 interface BuilderClientProps {
   resume: ResumeData;
   isPublic?: boolean;
@@ -45,6 +51,10 @@ export default function BuilderClient({
   const [colorScheme, setColorScheme] = useState(
     resume.colorScheme ?? "terracotta",
   );
+  const [font, setFont] = useState(resume.font ?? DEFAULT_FONT);
+  const [fontSize, setFontSize] = useState(
+    resume.fontSize ?? DEFAULT_FONT_SIZE,
+  );
 
   const liveResume: ResumeData = {
     ...resume,
@@ -53,6 +63,8 @@ export default function BuilderClient({
     title: resume.title,
     template,
     colorScheme,
+    font,
+    fontSize,
   };
 
   const closePanel = () => setPanel(null);
@@ -67,6 +79,8 @@ export default function BuilderClient({
         title={resume.title}
         template={template}
         colorScheme={colorScheme}
+        font={font}
+        fontSize={fontSize}
         onATSOpen={() => setPanel("ats")}
         onJDMatchOpen={() => setPanel("jd")}
         onCoverLetterOpen={() => setPanel("cover")}
@@ -78,6 +92,8 @@ export default function BuilderClient({
         isPro={isPro}
         onTemplateChange={setTemplate}
         onSchemeChange={setColorScheme}
+        onFontChange={setFont}
+        onFontSizeChange={setFontSize}
       />
 
       <div
@@ -97,6 +113,17 @@ export default function BuilderClient({
 
         {/* ── Right: Preview ── */}
         <div className="flex-1 overflow-auto bg-rv-cream flex flex-col items-center px-6 py-8 gap-3">
+          {/* Load selected Google Font */}
+          {(() => {
+            const fontDef = RESUME_FONTS.find((f) => f.id === font);
+            if (!fontDef?.google) return null;
+            return (
+              <link
+                rel="stylesheet"
+                href={`https://fonts.googleapis.com/css2?family=${fontDef.google}&display=swap`}
+              />
+            );
+          })()}
           <div className="text-[0.6rem] font-semibold tracking-widest uppercase text-rv-muted">
             Preview · {liveResume.template}
           </div>

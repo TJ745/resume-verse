@@ -35,6 +35,9 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
     title: resume.title,
     template: resume.template,
     colorScheme: resume.colorScheme,
+    font: (resume as typeof resume & { font?: string }).font ?? "dm-sans",
+    fontSize:
+      (resume as typeof resume & { fontSize?: string }).fontSize ?? "md",
     jobTitle: resume.jobTitle,
     personalInfo: (resume.personalInfo as unknown as PersonalInfo) ?? null,
     sections: resume.sections.map((s) => ({
@@ -48,7 +51,7 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
   };
 
   return (
-    <div className="max-h-screen bg-rv-paper text-rv-ink ">
+    <div className="max-h-screen bg-rv-paper text-rv-ink">
       <BuilderClient
         resume={resumeData}
         isPublic={resume.isPublic}

@@ -138,3 +138,74 @@ export const COLOR_SCHEMES: {
     swatch: "#9b1c1c",
   },
 ];
+
+// ── Resume fonts ──────────────────────────────────────────
+
+export const RESUME_FONTS: {
+  id: string;
+  label: string;
+  stack: string; // CSS font-family value
+  google: string | null; // Google Fonts URL fragment (null = system font)
+  category: "sans" | "serif";
+}[] = [
+  {
+    id: "dm-sans",
+    label: "DM Sans",
+    stack: "'DM Sans', sans-serif",
+    google: "DM+Sans:wght@300;400;500;600",
+    category: "sans",
+  },
+  {
+    id: "inter",
+    label: "Inter",
+    stack: "'Inter', sans-serif",
+    google: "Inter:wght@300;400;500;600",
+    category: "sans",
+  },
+  {
+    id: "lato",
+    label: "Lato",
+    stack: "'Lato', sans-serif",
+    google: "Lato:wght@300;400;700",
+    category: "sans",
+  },
+  {
+    id: "raleway",
+    label: "Raleway",
+    stack: "'Raleway', sans-serif",
+    google: "Raleway:wght@300;400;500;600",
+    category: "sans",
+  },
+  {
+    id: "playfair",
+    label: "Playfair Display",
+    stack: "'Playfair Display', serif",
+    google: "Playfair+Display:wght@400;600;700",
+    category: "serif",
+  },
+  {
+    id: "cormorant",
+    label: "Cormorant",
+    stack: "'Cormorant Garamond', serif",
+    google: "Cormorant+Garamond:wght@300;400;600",
+    category: "serif",
+  },
+];
+
+// ── Resume font sizes ─────────────────────────────────────
+
+export const FONT_SIZES: {
+  id: string;
+  label: string;
+  scale: number; // multiplier applied to the resume root font-size
+}[] = [
+  { id: "xs", label: "XS", scale: 1.0 },
+  { id: "sm", label: "Small", scale: 1.15 },
+  { id: "md", label: "Medium", scale: 1.3 },
+  { id: "lg", label: "Large", scale: 1.45 },
+  // { id: "xl", label: "XL", scale: 1.2 },
+  { id: "xl", label: "XL", scale: 1.6 },
+];
+
+export const DEFAULT_FONT = "dm-sans";
+export const DEFAULT_FONT_SIZE = "md";

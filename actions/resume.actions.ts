@@ -109,6 +109,9 @@ export async function duplicateResume(resumeId: string) {
       title: `${original.title} (Copy)`,
       template: original.template,
       colorScheme: original.colorScheme,
+      font: ((original as Record<string, unknown>).font as string) ?? "dm-sans",
+      fontSize:
+        ((original as Record<string, unknown>).fontSize as string) ?? "md",
       jobTitle: original.jobTitle,
       personalInfo: original.personalInfo ?? undefined,
       sections: {

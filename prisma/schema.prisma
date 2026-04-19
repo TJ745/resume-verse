@@ -16,11 +16,11 @@ model User {
   image         String?
 
   // Subscription
-  plan               String    @default("free") // "free" | "pro"
-  lsCustomerId       String?   @unique
-  lsSubscriptionId   String?   @unique
-  lsVariantId        String?
-  lsCurrentPeriodEnd DateTime?
+  plan                   String    @default("free") // "free" | "pro"
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
 
   // AI usage (free tier)
   aiUsageCount   Int      @default(0)
@@ -79,16 +79,19 @@ model Verification {
 // ─── ResumeVerse models ────────────────────────────────────
 
 model Resume {
-  id           String   @id @default(cuid())
-  userId       String
-  title        String   @default("Untitled Resume")
-  template     String   @default("modern") // modern | classic | minimal
-  colorScheme  String   @default("terracotta")
-  jobTitle     String? // used as AI context
-  personalInfo Json?
-  isPublic     Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  userId         String
+  title          String   @default("Untitled Resume")
+  template       String   @default("modern") // modern | classic | minimal
+  colorScheme    String   @default("terracotta")
+  font           String   @default("dm-sans")
+  fontSize       String   @default("md")
+  styleOverrides Json?
+  jobTitle       String? // used as AI context
+  personalInfo   Json?
+  isPublic       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   sections ResumeSection[]

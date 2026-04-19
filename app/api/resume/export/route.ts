@@ -1,11 +1,11 @@
-import { auth }           from "@/lib/auth";
-import { prisma }         from "@/lib/prisma";
-import { headers }        from "next/headers";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import puppeteer          from "puppeteer-core";
-import { execSync }       from "child_process";
+import puppeteer from "puppeteer-core";
+import { execSync } from "child_process";
 
-export const runtime    = "nodejs";
+export const runtime = "nodejs";
 export const maxDuration = 30;
 
 // ── Find the system Chrome / Chromium executable ──────────
@@ -32,7 +32,9 @@ function findChrome(): string {
       // but this route is nodejs runtime so it's fine.
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       if (require("fs").existsSync(p)) return p;
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
 
   // 3. macOS
@@ -42,20 +44,31 @@ function findChrome(): string {
     "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
   ];
   for (const p of mac) {
-    try { if (require("fs").existsSync(p)) return p; } catch { /* skip */ }
+    try {
+      if (require("fs").existsSync(p)) return p;
+    } catch {
+      /* skip */
+    }
   }
 
   // 4. Linux — try `which`
   try {
-    const path = execSync("which chromium-browser || which chromium || which google-chrome || which google-chrome-stable", { stdio: ["pipe", "pipe", "pipe"] })
-      .toString().trim().split("\n")[0];
+    const path = execSync(
+      "which chromium-browser || which chromium || which google-chrome || which google-chrome-stable",
+      { stdio: ["pipe", "pipe", "pipe"] },
+    )
+      .toString()
+      .trim()
+      .split("\n")[0];
     if (path) return path;
-  } catch { /* not found */ }
+  } catch {
+    /* not found */
+  }
 
   throw new Error(
     "Chrome not found. Either:\n" +
-    "  • Install Google Chrome normally, OR\n" +
-    "  • Set CHROME_EXECUTABLE_PATH=/path/to/chrome in your .env.local"
+      "  • Install Google Chrome normally, OR\n" +
+      "  • Set CHROME_EXECUTABLE_PATH=/path/to/chrome in your .env.local",
   );
 }
 
@@ -64,9 +77,11 @@ export async function GET(request: NextRequest) {
   if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
   const { searchParams } = new URL(request.url);
-  const resumeId  = searchParams.get("resumeId");
+  const resumeId = searchParams.get("resumeId");
   const qTemplate = searchParams.get("template");
-  const qScheme   = searchParams.get("colorScheme");
+  const qScheme = searchParams.get("colorScheme");
+  const qFont = searchParams.get("font");
+  const qFontSize = searchParams.get("fontSize");
 
   if (!resumeId) return new NextResponse("Missing resumeId", { status: 400 });
 
@@ -75,10 +90,18 @@ export async function GET(request: NextRequest) {
   });
   if (!resume) return new NextResponse("Resume not found", { status: 404 });
 
-  const baseUrl     = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const printParams = new URLSearchParams({
-    template:    qTemplate ?? resume.template    ?? "modern",
-    colorScheme: qScheme   ?? resume.colorScheme ?? "terracotta",
+    template: qTemplate ?? resume.template ?? "modern",
+    colorScheme: qScheme ?? resume.colorScheme ?? "terracotta",
+    font:
+      qFont ??
+      ((resume as Record<string, unknown>).font as string) ??
+      "dm-sans",
+    fontSize:
+      qFontSize ??
+      ((resume as Record<string, unknown>).fontSize as string) ??
+      "md",
   });
   const printUrl = `${baseUrl}/resume/${resumeId}/print?${printParams.toString()}`;
 
@@ -87,10 +110,7 @@ export async function GET(request: NextRequest) {
     executablePath = findChrome();
   } catch (err) {
     console.error(err);
-    return new NextResponse(
-      (err as Error).message,
-      { status: 500 }
-    );
+    return new NextResponse((err as Error).message, { status: 500 });
   }
 
   const browser = await puppeteer.launch({
@@ -114,8 +134,8 @@ export async function GET(request: NextRequest) {
       .map((c) => {
         const [name, ...rest] = c.trim().split("=");
         return {
-          name:   name.trim(),
-          value:  rest.join("=").trim(),
+          name: name.trim(),
+          value: rest.join("=").trim(),
           domain: new URL(baseUrl).hostname,
         };
       })
@@ -126,9 +146,9 @@ export async function GET(request: NextRequest) {
     await page.goto(printUrl, { waitUntil: "networkidle0", timeout: 25000 });
 
     const pdfBuffer = await page.pdf({
-      format:          "A4",
+      format: "A4",
       printBackground: true,
-      margin:          { top: 0, right: 0, bottom: 0, left: 0 },
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
     });
 
     const safeTitle = resume.title.replace(/[^a-z0-9]/gi, "_").toLowerCase();
@@ -136,9 +156,9 @@ export async function GET(request: NextRequest) {
     return new NextResponse(pdfBuffer, {
       status: 200,
       headers: {
-        "Content-Type":        "application/pdf",
+        "Content-Type": "application/pdf",
         "Content-Disposition": `inline; filename="${safeTitle}.pdf"`,
-        "Cache-Control":       "no-store",
+        "Cache-Control": "no-store",
       },
     });
   } finally {

@@ -14,13 +14,13 @@ export async function GET() {
     select: {
       plan: true,
       aiUsageCount: true,
-      lsCurrentPeriodEnd: true,
+      stripeCurrentPeriodEnd: true,
     },
   });
 
   return NextResponse.json({
     plan: user?.plan ?? "free",
     aiUsageCount: user?.aiUsageCount ?? 0,
-    periodEnd: user?.lsCurrentPeriodEnd ?? null,
+    periodEnd: user?.stripeCurrentPeriodEnd ?? null,
   });
 }

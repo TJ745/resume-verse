@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createCheckoutUrl } from "@/lib/lemonsqueezy";
+import { createPortalUrl } from "@/lib/stripe";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -12,27 +12,23 @@ export async function POST() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { plan: true, email: true, name: true },
+    select: { stripeCustomerId: true, plan: true },
   });
 
-  if (!user) return new NextResponse("User not found", { status: 404 });
-
-  if (user.plan === "pro") {
-    return NextResponse.json({ error: "Already on Pro plan" }, { status: 400 });
+  if (!user?.stripeCustomerId || user.plan !== "pro") {
+    return NextResponse.json(
+      { error: "No active subscription found" },
+      { status: 404 },
+    );
   }
 
   try {
-    const url = await createCheckoutUrl({
-      email: user.email ?? session.user.email,
-      name: user.name ?? session.user.name ?? "",
-      userId: session.user.id,
-    });
-
+    const url = await createPortalUrl(user.stripeCustomerId);
     return NextResponse.json({ url });
   } catch (err) {
-    console.error("LemonSqueezy checkout error:", err);
+    console.error("Stripe portal error:", err);
     return NextResponse.json(
-      { error: "Failed to create checkout" },
+      { error: "Failed to get billing portal" },
       { status: 500 },
     );
   }

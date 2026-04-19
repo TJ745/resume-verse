@@ -26,9 +26,8 @@ export default function DashboardTopbar({
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(e.target as Node)
-      ) {
+      )
         setOpen(false);
-      }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -38,7 +37,6 @@ export default function DashboardTopbar({
     await signOut();
     router.push("/login");
   }
-
   async function handleManageBilling() {
     setOpen(false);
     const res = await fetch("/api/stripe/portal", { method: "POST" });
@@ -54,73 +52,38 @@ export default function DashboardTopbar({
         .toUpperCase()
         .slice(0, 2)
     : "?";
-
   const isPro = plan === "pro";
+  const usagePct = Math.min((aiUsed / aiLimit) * 100, 100);
 
   return (
-    <header
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4"
-      style={{
-        background: "var(--rv-paper)",
-        borderBottom: "1px solid var(--rv-border)",
-        height: "64px",
-      }}
-    >
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-8 bg-rv-paper border-b border-rv-border">
       <Link
         href="/dashboard"
-        className="font-serif text-xl no-underline"
-        style={{ color: "var(--rv-ink)", letterSpacing: "-0.02em" }}
+        className="font-serif text-xl no-underline text-rv-ink tracking-[-0.02em]"
       >
-        Resume
-        <span style={{ color: "var(--rv-accent)", fontStyle: "italic" }}>
-          Verse
-        </span>
+        Resume<span className="text-rv-accent italic">Verse</span>
       </Link>
 
       <div className="flex items-center gap-3">
-        {/* Free AI usage pill */}
+        {/* AI usage pill — free users only */}
         {!isPro && (
           <Link
             href="/pricing"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: "0.7rem",
-              fontWeight: 600,
-              textDecoration: "none",
-              padding: "0.3rem 0.7rem",
-              borderRadius: 99,
-              border: "1px solid var(--rv-border)",
-              color: aiUsed >= aiLimit ? "var(--rv-accent)" : "var(--rv-muted)",
-              background:
-                aiUsed >= aiLimit ? "rgba(200,75,47,0.06)" : "transparent",
-            }}
+            className={`inline-flex items-center gap-1.5 text-[0.7rem] font-semibold no-underline px-3 py-1.5 rounded-full border transition-colors ${aiUsed >= aiLimit ? "border-[rgba(200,75,47,0.3)] text-rv-accent bg-[rgba(200,75,47,0.06)]" : "border-rv-border text-rv-muted bg-transparent hover:border-rv-accent hover:text-rv-accent"}`}
           >
             <svg
               viewBox="0 0 16 16"
-              style={{
-                width: 10,
-                height: 10,
-                fill: "none",
-                stroke: "currentColor",
-                strokeWidth: 1.8,
-              }}
+              width={10}
+              height={10}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.8}
             >
               <path d="M8 2l1.6 4.9H15l-4.1 3 1.6 4.9L8 12l-4.5 2.8 1.6-4.9L1 7h5.4z" />
             </svg>
             {aiUsed}/{aiLimit} AI uses
             {aiUsed >= aiLimit && (
-              <span
-                style={{
-                  fontSize: "0.6rem",
-                  fontWeight: 800,
-                  background: "var(--rv-accent)",
-                  color: "#fff",
-                  borderRadius: 99,
-                  padding: "1px 5px",
-                }}
-              >
+              <span className="text-[0.6rem] font-extrabold bg-rv-accent text-white rounded-full px-1.5 py-px">
                 Upgrade
               </span>
             )}
@@ -131,162 +94,67 @@ export default function DashboardTopbar({
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setOpen((o) => !o)}
-            className="flex items-center gap-2.5"
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: 0,
-            }}
+            className="flex items-center gap-2.5 bg-transparent border-0 cursor-pointer p-0"
           >
             <div
-              className="flex items-center justify-center font-semibold text-sm"
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: "50%",
-                background: isPro ? "var(--rv-ink)" : "var(--rv-accent)",
-                color: "var(--rv-white)",
-              }}
+              className={`w-8.5 h-8.5 rounded-full flex items-center justify-center text-sm font-semibold text-white ${isPro ? "bg-rv-ink" : "bg-rv-accent"}`}
             >
               {initials}
             </div>
-
-            <div
-              className="hidden sm:flex flex-col items-start"
-              style={{ gap: 1 }}
-            >
-              <span
-                className="text-sm font-medium"
-                style={{ color: "var(--rv-ink)", lineHeight: 1 }}
-              >
+            <div className="hidden sm:flex flex-col items-start gap-px">
+              <span className="text-sm font-medium text-rv-ink leading-none">
                 {session?.user?.name ?? "Account"}
               </span>
               <span
-                style={{
-                  fontSize: "0.55rem",
-                  fontWeight: 800,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  lineHeight: 1,
-                  color: isPro ? "#2d5a3d" : "var(--rv-muted)",
-                }}
+                className={`text-[0.55rem] font-extrabold tracking-[0.08em] uppercase leading-none ${isPro ? "text-[#2d5a3d]" : "text-rv-muted"}`}
               >
                 {isPro ? "✦ Pro" : "Free"}
               </span>
             </div>
-
             <svg
               viewBox="0 0 16 16"
-              style={{
-                width: 14,
-                height: 14,
-                stroke: "var(--rv-muted)",
-                fill: "none",
-                strokeWidth: 1.5,
-                transform: open ? "rotate(180deg)" : "rotate(0deg)",
-                transition: "transform 0.15s",
-              }}
+              width={14}
+              height={14}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              className={`text-rv-muted transition-transform duration-150 ${open ? "rotate-180" : "rotate-0"}`}
             >
               <path d="M4 6l4 4 4-4" />
             </svg>
           </button>
 
           {open && (
-            <div
-              className="absolute right-0 mt-2 py-1"
-              style={{
-                minWidth: 215,
-                background: "var(--rv-white)",
-                border: "1px solid var(--rv-border)",
-                borderRadius: 2,
-                boxShadow: "0 8px 24px rgba(15,14,13,0.1)",
-              }}
-            >
+            <div className="absolute right-0 mt-2 py-1 min-w-54 bg-rv-white border border-rv-border rounded-sm shadow-[0_8px_24px_rgba(15,14,13,0.1)] z-50">
               {/* Header */}
-              <div
-                className="px-4 py-3"
-                style={{ borderBottom: "1px solid var(--rv-border)" }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: 2,
-                  }}
-                >
-                  <p
-                    className="text-sm font-medium"
-                    style={{ color: "var(--rv-ink)" }}
-                  >
+              <div className="px-4 py-3 border-b border-rv-border">
+                <div className="flex items-center justify-between mb-0.5">
+                  <p className="text-sm font-medium text-rv-ink">
                     {session?.user?.name}
                   </p>
                   <span
-                    style={{
-                      fontSize: "0.55rem",
-                      fontWeight: 800,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      padding: "2px 7px",
-                      borderRadius: 99,
-                      background: isPro
-                        ? "rgba(45,90,61,0.1)"
-                        : "rgba(138,132,120,0.1)",
-                      color: isPro ? "#2d5a3d" : "var(--rv-muted)",
-                    }}
+                    className={`text-[0.55rem] font-extrabold tracking-[0.08em] uppercase px-2 py-0.5 rounded-full ${isPro ? "bg-[rgba(45,90,61,0.1)] text-[#2d5a3d]" : "bg-[rgba(138,132,120,0.1)] text-rv-muted"}`}
                   >
                     {isPro ? "✦ Pro" : "Free"}
                   </span>
                 </div>
-                <p className="text-xs" style={{ color: "var(--rv-muted)" }}>
-                  {session?.user?.email}
-                </p>
+                <p className="text-xs text-rv-muted">{session?.user?.email}</p>
                 {!isPro && (
-                  <div style={{ marginTop: "0.6rem" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginBottom: 3,
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "0.6rem", color: "var(--rv-muted)" }}
-                      >
+                  <div className="mt-2">
+                    <div className="flex justify-between mb-1">
+                      <span className="text-[0.6rem] text-rv-muted">
                         AI uses this month
                       </span>
                       <span
-                        style={{
-                          fontSize: "0.6rem",
-                          fontWeight: 600,
-                          color:
-                            aiUsed >= aiLimit
-                              ? "var(--rv-accent)"
-                              : "var(--rv-muted)",
-                        }}
+                        className={`text-[0.6rem] font-semibold ${aiUsed >= aiLimit ? "text-rv-accent" : "text-rv-muted"}`}
                       >
                         {aiUsed}/{aiLimit}
                       </span>
                     </div>
-                    <div
-                      style={{
-                        height: 3,
-                        background: "var(--rv-border)",
-                        borderRadius: 99,
-                        overflow: "hidden",
-                      }}
-                    >
+                    <div className="h-1 bg-rv-border rounded-full overflow-hidden">
                       <div
-                        style={{
-                          height: "100%",
-                          width: `${Math.min((aiUsed / aiLimit) * 100, 100)}%`,
-                          background:
-                            aiUsed >= aiLimit
-                              ? "var(--rv-accent)"
-                              : "var(--rv-ink)",
-                          borderRadius: 99,
-                        }}
+                        className={`h-full rounded-full transition-all ${aiUsed >= aiLimit ? "bg-rv-accent" : "bg-rv-ink"}`}
+                        style={{ width: `${usagePct}%` }}
                       />
                     </div>
                   </div>
@@ -296,16 +164,7 @@ export default function DashboardTopbar({
               <Link
                 href="/dashboard/settings"
                 onClick={() => setOpen(false)}
-                className="block px-4 py-2.5 text-sm"
-                style={{ color: "var(--rv-muted)", textDecoration: "none" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "var(--rv-cream)";
-                  e.currentTarget.style.color = "var(--rv-ink)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "none";
-                  e.currentTarget.style.color = "var(--rv-muted)";
-                }}
+                className="block px-4 py-2.5 text-sm text-rv-muted no-underline hover:bg-rv-cream hover:text-rv-ink transition-colors"
               >
                 Account Settings
               </Link>
@@ -313,22 +172,7 @@ export default function DashboardTopbar({
               {isPro ? (
                 <button
                   onClick={handleManageBilling}
-                  className="w-full text-left px-4 py-2.5 text-sm"
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "var(--rv-muted)",
-                    fontFamily: "inherit",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "var(--rv-cream)";
-                    e.currentTarget.style.color = "var(--rv-ink)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "none";
-                    e.currentTarget.style.color = "var(--rv-muted)";
-                  }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-rv-muted bg-transparent border-0 cursor-pointer hover:bg-rv-cream hover:text-rv-ink transition-colors"
                 >
                   Manage Billing
                 </button>
@@ -336,44 +180,17 @@ export default function DashboardTopbar({
                 <Link
                   href="/pricing"
                   onClick={() => setOpen(false)}
-                  className="block px-4 py-2.5 text-sm font-semibold"
-                  style={{ color: "var(--rv-accent)", textDecoration: "none" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(200,75,47,0.05)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "none";
-                  }}
+                  className="block px-4 py-2.5 text-sm font-semibold text-rv-accent no-underline hover:bg-[rgba(200,75,47,0.05)] transition-colors"
                 >
                   ✦ Upgrade to Pro
                 </Link>
               )}
 
-              <div
-                style={{
-                  borderTop: "1px solid var(--rv-border)",
-                  margin: "4px 0",
-                }}
-              />
+              <div className="border-t border-rv-border my-1" />
 
               <button
                 onClick={handleSignOut}
-                className="w-full text-left px-4 py-2.5 text-sm"
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "var(--rv-muted)",
-                  fontFamily: "inherit",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "var(--rv-cream)";
-                  e.currentTarget.style.color = "var(--rv-ink)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "none";
-                  e.currentTarget.style.color = "var(--rv-muted)";
-                }}
+                className="w-full text-left px-4 py-2.5 text-sm text-rv-muted bg-transparent border-0 cursor-pointer hover:bg-rv-cream hover:text-rv-ink transition-colors"
               >
                 Sign out
               </button>
