@@ -1,8 +1,72 @@
+// import { auth } from "@/lib/auth";
+// import { prisma } from "@/lib/prisma";
+// import { headers } from "next/headers";
+// import { redirect, notFound } from "next/navigation";
+// import BuilderClient from "@/components/builder/BuilderClient";
+// import type {
+//   ResumeData,
+//   ResumeSection,
+//   SectionType,
+//   PersonalInfo,
+// } from "@/types/resume";
+
+// interface BuilderPageProps {
+//   params: Promise<{ resumeId: string }>;
+// }
+
+// export default async function BuilderPage({ params }: BuilderPageProps) {
+//   const { resumeId } = await params;
+
+//   const session = await auth.api.getSession({ headers: await headers() });
+//   if (!session) redirect("/login");
+
+//   const resume = await prisma.resume.findFirst({
+//     where: { id: resumeId, userId: session.user.id },
+//     include: {
+//       sections: { orderBy: { order: "asc" } },
+//       user: { select: { plan: true } },
+//     },
+//   });
+
+//   if (!resume) notFound();
+
+//   const resumeData: ResumeData = {
+//     id: resume.id,
+//     title: resume.title,
+//     template: resume.template,
+//     colorScheme: resume.colorScheme,
+//     font: (resume as typeof resume & { font?: string }).font ?? "dm-sans",
+//     fontSize:
+//       (resume as typeof resume & { fontSize?: string }).fontSize ?? "md",
+//     jobTitle: resume.jobTitle,
+//     personalInfo: (resume.personalInfo as unknown as PersonalInfo) ?? null,
+//     sections: resume.sections.map((s) => ({
+//       id: s.id,
+//       resumeId: s.resumeId,
+//       type: s.type as SectionType,
+//       title: s.title,
+//       content: s.content as unknown as ResumeSection["content"],
+//       order: s.order,
+//     })),
+//   };
+
+//   return (
+//     <div className="max-h-screen bg-rv-paper text-rv-ink">
+//       <BuilderClient
+//         resume={resumeData}
+//         isPublic={resume.isPublic}
+//         isPro={resume.user.plan === "pro"}
+//       />
+//     </div>
+//   );
+// }
+
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import BuilderClient from "@/components/builder/BuilderClient";
+import { DEFAULT_FONT, DEFAULT_FONT_SIZE } from "@/lib/resume-constants";
 import type {
   ResumeData,
   ResumeSection,
@@ -30,17 +94,24 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
 
   if (!resume) notFound();
 
+  // Cast to include fields added after initial migration
+  const db = resume as typeof resume & {
+    font?: string;
+    fontSize?: string;
+    styleOverrides?: Record<string, unknown>;
+  };
+
   const resumeData: ResumeData = {
-    id: resume.id,
-    title: resume.title,
-    template: resume.template,
-    colorScheme: resume.colorScheme,
-    font: (resume as typeof resume & { font?: string }).font ?? "dm-sans",
-    fontSize:
-      (resume as typeof resume & { fontSize?: string }).fontSize ?? "md",
-    jobTitle: resume.jobTitle,
-    personalInfo: (resume.personalInfo as unknown as PersonalInfo) ?? null,
-    sections: resume.sections.map((s) => ({
+    id: db.id,
+    title: db.title,
+    template: db.template,
+    colorScheme: db.colorScheme,
+    font: db.font ?? DEFAULT_FONT,
+    fontSize: db.fontSize ?? DEFAULT_FONT_SIZE,
+    styleOverrides: db.styleOverrides ?? {},
+    jobTitle: db.jobTitle,
+    personalInfo: (db.personalInfo as unknown as PersonalInfo) ?? null,
+    sections: db.sections.map((s) => ({
       id: s.id,
       resumeId: s.resumeId,
       type: s.type as SectionType,
@@ -54,8 +125,8 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
     <div className="max-h-screen bg-rv-paper text-rv-ink">
       <BuilderClient
         resume={resumeData}
-        isPublic={resume.isPublic}
-        isPro={resume.user.plan === "pro"}
+        isPublic={db.isPublic}
+        isPro={db.user.plan === "pro"}
       />
     </div>
   );

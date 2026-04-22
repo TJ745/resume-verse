@@ -1,64 +1,35 @@
-import { WRAP, SERIF, getName, getJobTitle, renderSection } from "./Shared";
+import {
+  getName, getJobTitle, renderSection,
+} from "./Shared";
+import { Styleable } from "@/components/builder/StyleContext";
 import type { TplProps } from "./types";
 
-export default function ChronologicalTemplate({
-  resume,
-  sections,
-  accent,
-}: TplProps) {
-  const h: React.CSSProperties = {
-    fontSize: "0.6rem",
-    fontWeight: 700,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    color: accent,
-    marginBottom: "0.6rem",
-  };
+export default function ChronologicalTemplate({ resume, sections, accent }: TplProps) {
+  const hClass = "text-[0.6em] font-bold tracking-[0.12em] uppercase text-accent mb-[0.6rem]";
   return (
-    <div style={{ ...WRAP, padding: "2rem" }}>
-      <div style={{ marginBottom: "1.5rem" }}>
-        <h1
-          style={{
-            fontFamily: SERIF,
-            fontSize: "1.65rem",
-            color: "#0f0e0d",
-            letterSpacing: "-0.02em",
-            marginBottom: "0.2rem",
-          }}
-        >
+    <div className="bg-[#fdfcfa] p-8 min-h-full" style={{ "--accent": accent } as React.CSSProperties}>
+      <div className="mb-6">
+        <Styleable instanceId="name" tag="h1" className="font-serif text-[1.65em] text-rv-ink tracking-[-0.02em] mb-[0.2rem]">
           {getName(resume)}
-        </h1>
+        </Styleable>
         {getJobTitle(resume) && (
-          <p style={{ fontSize: "0.67rem", color: "#8a8478" }}>
+          <Styleable instanceId="jobTitle" tag="p" className="text-[0.67em] text-rv-muted">
             {getJobTitle(resume)}
-          </p>
+          </Styleable>
         )}
-        <div style={{ display: "flex", gap: 4, marginTop: "0.5rem" }}>
-          <div style={{ width: 24, height: 3, background: accent }} />
-          <div
-            style={{ width: 8, height: 3, background: accent, opacity: 0.4 }}
-          />
-          <div
-            style={{ width: 4, height: 3, background: accent, opacity: 0.2 }}
-          />
+        <div className="flex gap-1 mt-2">
+          <div className="w-6 h-0.75 bg-accent" />
+          <div className="w-2 h-0.75 bg-accent opacity-40" />
+          <div className="w-1 h-0.75 bg-accent opacity-20" />
         </div>
       </div>
-      <div style={{ borderLeft: "2px solid #e8e4dc", paddingLeft: "1rem" }}>
+      {/* Timeline track */}
+      <div className="border-l-2 border-[#e8e4dc] pl-4">
         {sections.map((s) => (
-          <div key={s.id} style={{ position: "relative" }}>
-            <div
-              style={{
-                position: "absolute",
-                left: "-1.35rem",
-                top: "0.15rem",
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: accent,
-                border: "2px solid #fdfcfa",
-              }}
-            />
-            {renderSection(s, h, accent)}
+          <div key={s.id} className="relative">
+            {/* Timeline dot */}
+            <div className="absolute -left-[1.35rem] top-[0.15rem] size-2 rounded-full bg-accent border-2 border-[#fdfcfa]" />
+            {renderSection(s, hClass)}
           </div>
         ))}
       </div>

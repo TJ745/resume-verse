@@ -1,57 +1,26 @@
-import { WRAP, SERIF, getName, getJobTitle, renderSection } from "./Shared";
+import {
+  getName, getJobTitle, renderSection,
+} from "./Shared";
+import { Styleable } from "@/components/builder/StyleContext";
 import type { TplProps } from "./types";
 
-export default function ElegantTemplate({
-  resume,
-  sections,
-  accent,
-}: TplProps) {
-  const h: React.CSSProperties = {
-    fontFamily: SERIF,
-    fontSize: "0.85rem",
-    fontStyle: "italic",
-    color: accent,
-    borderBottom: "1px solid #d9d4c7",
-    paddingBottom: "0.25rem",
-    marginBottom: "0.6rem",
-  };
+export default function ElegantTemplate({ resume, sections, accent }: TplProps) {
+  const hClass = "font-serif text-[0.85em] italic text-accent border-b border-rv-border pb-[0.25rem] mb-[0.6rem]";
   return (
-    <div style={{ ...WRAP, padding: "2.5rem 3rem" }}>
-      <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
-        <h1
-          style={{
-            fontFamily: SERIF,
-            fontSize: "2rem",
-            color: "#0f0e0d",
-            letterSpacing: "0.04em",
-            marginBottom: "0.25rem",
-          }}
-        >
+    <div className="bg-[#fdfcfa] py-10 px-12 min-h-full" style={{ "--accent": accent } as React.CSSProperties}>
+      <div className="text-center mb-7">
+        <Styleable instanceId="name" tag="h1" className="font-serif text-[2em] text-rv-ink tracking-[0.04em] mb-[0.25rem]">
           {getName(resume)}
-        </h1>
+        </Styleable>
         {getJobTitle(resume) && (
-          <p
-            style={{
-              fontSize: "0.7rem",
-              color: "#8a8478",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-            }}
-          >
+          <Styleable instanceId="jobTitle" tag="p" className="text-[0.7em] text-rv-muted tracking-[0.12em] uppercase">
             {getJobTitle(resume)}
-          </p>
+          </Styleable>
         )}
-        <div
-          style={{
-            width: 48,
-            height: 1,
-            background: accent,
-            margin: "0.75rem auto 0",
-          }}
-        />
+        <div className="w-12 h-px bg-accent mx-auto mt-3" />
       </div>
       {sections.map((s) => (
-        <div key={s.id}>{renderSection(s, h, accent)}</div>
+        <div key={s.id}>{renderSection(s, hClass)}</div>
       ))}
     </div>
   );

@@ -1,51 +1,25 @@
-import { WRAP, SERIF, getName, getJobTitle, renderSection } from "./Shared";
+import {
+  getName, getJobTitle, renderSection,
+} from "./Shared";
+import { Styleable } from "@/components/builder/StyleContext";
 import type { TplProps } from "./types";
 
-export default function CompactTemplate({
-  resume,
-  sections,
-  accent,
-}: TplProps) {
-  const h: React.CSSProperties = {
-    fontSize: "0.58rem",
-    fontWeight: 700,
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    color: accent,
-    borderBottom: `1px solid ${accent}`,
-    paddingBottom: "0.15rem",
-    marginBottom: "0.4rem",
-  };
+export default function CompactTemplate({ resume, sections, accent }: TplProps) {
+  const hClass = "text-[0.58em] font-bold tracking-[0.1em] uppercase text-accent border-b border-accent pb-[0.15rem] mb-[0.4rem]";
   return (
-    <div style={{ ...WRAP, fontSize: "10px", padding: "1.5rem" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          marginBottom: "1rem",
-          paddingBottom: "0.6rem",
-          borderBottom: "1px solid #d9d4c7",
-        }}
-      >
-        <h1
-          style={{
-            fontFamily: SERIF,
-            fontSize: "1.4rem",
-            color: "#0f0e0d",
-            letterSpacing: "-0.02em",
-          }}
-        >
+    <div className="bg-[#fdfcfa] p-6 min-h-full" style={{ "--accent": accent } as React.CSSProperties}>
+      <div className="flex justify-between items-end mb-4 pb-[0.6rem] border-b border-rv-border">
+        <Styleable instanceId="name" tag="h1" className="font-serif text-[1.4em] text-rv-ink tracking-[-0.02em]">
           {getName(resume)}
-        </h1>
+        </Styleable>
         {getJobTitle(resume) && (
-          <p style={{ fontSize: "0.65rem", color: "#8a8478" }}>
+          <Styleable instanceId="jobTitle" tag="p" className="text-[0.65em] text-rv-muted">
             {getJobTitle(resume)}
-          </p>
+          </Styleable>
         )}
       </div>
       {sections.map((s) => (
-        <div key={s.id}>{renderSection(s, h, accent)}</div>
+        <div key={s.id}>{renderSection(s, hClass)}</div>
       ))}
     </div>
   );

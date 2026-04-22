@@ -1,62 +1,30 @@
-import { WRAP, SERIF, getName, getJobTitle, renderSection } from "./Shared";
+import {
+  getName, getJobTitle, renderSection,
+} from "./Shared";
+import { Styleable } from "@/components/builder/StyleContext";
 import type { TplProps } from "./types";
 
-export default function MinimalTemplate({
-  resume,
-  sections,
-  accent,
-}: TplProps) {
-  const h: React.CSSProperties = {
-    fontSize: "0.6rem",
-    fontWeight: 700,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    color: "#8a8478",
-    marginBottom: "0.6rem",
-  };
+export default function MinimalTemplate({ resume, sections, accent }: TplProps) {
+  const hClass = "text-[0.6em] font-bold tracking-[0.12em] uppercase text-rv-muted mb-[0.6rem]";
   const LEFT = ["skills", "certifications", "education"];
   const left = sections.filter((s) => LEFT.includes(s.type));
   const right = sections.filter((s) => !LEFT.includes(s.type));
   return (
-    <div style={{ ...WRAP, padding: "1.75rem" }}>
-      <div style={{ marginBottom: "1.25rem" }}>
-        <h1
-          style={{
-            fontFamily: SERIF,
-            fontSize: "1.6rem",
-            color: "#0f0e0d",
-            letterSpacing: "-0.02em",
-            marginBottom: "0.15rem",
-          }}
-        >
+    <div className="bg-[#fdfcfa] p-7 min-h-full" style={{ "--accent": accent } as React.CSSProperties}>
+      <div className="mb-5">
+        <Styleable instanceId="name" tag="h1" className="font-serif text-[1.6em] text-rv-ink tracking-[-0.02em] mb-[0.15rem]">
           {getName(resume)}
-        </h1>
+        </Styleable>
         {getJobTitle(resume) && (
-          <p style={{ fontSize: "0.67rem", color: "#8a8478" }}>
+          <Styleable instanceId="jobTitle" tag="p" className="text-[0.67em] text-rv-muted">
             {getJobTitle(resume)}
-          </p>
+          </Styleable>
         )}
-        <div
-          style={{ height: 1, background: "#d9d4c7", marginTop: "0.75rem" }}
-        />
+        <div className="h-px bg-rv-border mt-3" />
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 2fr",
-          gap: "1.5rem",
-        }}
-      >
-        <div>
-          {left.map((s) => (
-            <div key={s.id}>{renderSection(s, h, accent)}</div>
-          ))}
-        </div>
-        <div>
-          {right.map((s) => (
-            <div key={s.id}>{renderSection(s, h, accent)}</div>
-          ))}
-        </div>
+      <div className="grid grid-cols-[1fr_2fr] gap-6">
+        <div>{left.map((s) => <div key={s.id}>{renderSection(s, hClass)}</div>)}</div>
+        <div>{right.map((s) => <div key={s.id}>{renderSection(s, hClass)}</div>)}</div>
       </div>
     </div>
   );

@@ -1,57 +1,25 @@
-import { WRAP, SERIF, getName, getJobTitle, renderSection } from "./Shared";
+import {
+  getName, getJobTitle, renderSection,
+} from "./Shared";
+import { Styleable } from "@/components/builder/StyleContext";
 import type { TplProps } from "./types";
 
-export default function ExecutiveTemplate({
-  resume,
-  sections,
-  accent,
-}: TplProps) {
-  const h: React.CSSProperties = {
-    fontSize: "0.6rem",
-    fontWeight: 700,
-    letterSpacing: "0.15em",
-    textTransform: "uppercase",
-    color: "#0f0e0d",
-    marginBottom: "0.5rem",
-    paddingBottom: "0.2rem",
-    borderBottom: `2px solid ${accent}`,
-  };
+export default function ExecutiveTemplate({ resume, sections, accent }: TplProps) {
+  const hClass = "text-[0.6em] font-bold tracking-[0.15em] uppercase text-rv-ink mb-[0.5rem] pb-[0.2rem] border-b-2 border-accent";
   return (
-    <div style={{ ...WRAP, padding: "2.5rem" }}>
-      <div
-        style={{
-          marginBottom: "1.75rem",
-          paddingBottom: "1.25rem",
-          borderBottom: `3px solid ${accent}`,
-        }}
-      >
-        <h1
-          style={{
-            fontFamily: SERIF,
-            fontSize: "1.9rem",
-            color: "#0f0e0d",
-            letterSpacing: "-0.02em",
-            marginBottom: "0.3rem",
-          }}
-        >
+    <div className="bg-[#fdfcfa] p-10 min-h-full" style={{ "--accent": accent } as React.CSSProperties}>
+      <div className="mb-7 pb-5 border-b-[3px] border-accent">
+        <Styleable instanceId="name" tag="h1" className="font-serif text-[1.9em] text-rv-ink tracking-[-0.02em] mb-[0.3rem]">
           {getName(resume)}
-        </h1>
+        </Styleable>
         {getJobTitle(resume) && (
-          <p
-            style={{
-              fontSize: "0.72rem",
-              color: accent,
-              fontWeight: 600,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-            }}
-          >
+          <Styleable instanceId="jobTitle" tag="p" className="text-[0.72em] text-accent font-semibold tracking-[0.08em] uppercase">
             {getJobTitle(resume)}
-          </p>
+          </Styleable>
         )}
       </div>
       {sections.map((s) => (
-        <div key={s.id}>{renderSection(s, h, accent)}</div>
+        <div key={s.id}>{renderSection(s, hClass)}</div>
       ))}
     </div>
   );

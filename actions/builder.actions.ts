@@ -171,7 +171,10 @@ export async function updateResumeMeta(
   },
 ) {
   await requireOwner(resumeId);
-  await prisma.resume.update({ where: { id: resumeId }, data });
+  await prisma.resume.update({
+    where: { id: resumeId },
+    data: data as Parameters<typeof prisma.resume.update>[0]["data"],
+  });
   revalidatePath(`/builder/${resumeId}`);
 }
 

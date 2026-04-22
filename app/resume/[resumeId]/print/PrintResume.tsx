@@ -67,6 +67,7 @@
 //   const fontDef = RESUME_FONTS.find((f) => f.id === fontId) ?? RESUME_FONTS[0];
 //   const sizeDef = FONT_SIZES.find((s) => s.id === sizeId) ?? FONT_SIZES[2];
 //   const scale = sizeDef.scale;
+//   const basePx = Math.round(13 * scale); // same base as ResumePreview
 
 //   // Build Google Fonts URL — always include Instrument Serif for serif accents in templates
 //   const googleFamilies = ["Instrument+Serif:ital@0;1"];
@@ -112,7 +113,6 @@
 //     //       html, body {
 //     //         width: 210mm;
 //     //         min-height: 297mm;
-//     //         /* Apply selected font family */
 //     //         font-family: ${fontDef.stack};
 //     //         background: #ffffff;
 //     //         color: #0f0e0d;
@@ -124,8 +124,8 @@
 //     //       .page {
 //     //         width: 210mm;
 //     //         min-height: 297mm;
-//     //         /* Font size scale — all em-relative sizes in templates scale with this */
-//     //         font-size: ${scale}em;
+//     //         /* Base font-size drives all em values in templates — same as ResumePreview */
+//     //         font-size: ${basePx}px;
 //     //       }
 //     //     `}</style>
 //     //   </head>
@@ -169,14 +169,18 @@
 //         </div>
 //       )}
 //     </>
-
 //     //   </body>
 //     // </html>
 //   );
 // }
 
-// PrintResume — renders the resume for Puppeteer PDF and public share.
-// Applies the user's selected font family, font size scale, template and color scheme.
+// PrintResume — renders the resume for Puppeteer PDF export and public share.
+// This is a raw HTML document — no Tailwind, no React className processing.
+// Uses class= (not className=) on .page so the CSS rule applies.
+
+// PrintResume — renders the resume for Puppeteer PDF export and public share.
+// This is a raw HTML document — no Tailwind, no React className processing.
+// Uses class= (not className=) on .page so the CSS rule applies.
 
 import {
   ModernTemplate,
@@ -195,6 +199,7 @@ import {
 import {
   RESUME_FONTS,
   FONT_SIZES,
+  ELEMENT_FONTS,
   DEFAULT_FONT,
   DEFAULT_FONT_SIZE,
 } from "@/lib/resume-constants";
@@ -238,20 +243,81 @@ export default function PrintResume({
     accent,
   };
 
-  // Resolve font
+  // ── Global font (topbar selection) ───────────────────────
   const fontId = resume.font ?? DEFAULT_FONT;
   const sizeId = resume.fontSize ?? DEFAULT_FONT_SIZE;
   const fontDef = RESUME_FONTS.find((f) => f.id === fontId) ?? RESUME_FONTS[0];
   const sizeDef = FONT_SIZES.find((s) => s.id === sizeId) ?? FONT_SIZES[2];
-  const scale = sizeDef.scale;
-  const basePx = Math.round(13 * scale); // same base as ResumePreview
+  const basePx = Math.round(13 * sizeDef.scale);
 
-  // Build Google Fonts URL — always include Instrument Serif for serif accents in templates
-  const googleFamilies = ["Instrument+Serif:ital@0;1"];
-  if (fontDef.google && !fontDef.google.startsWith("Instrument")) {
+  // ── Per-element override fonts (StyleToolbar selections) ──
+  // Collect every unique font id used in styleOverrides so we can
+  // load their Google Fonts in the <head>.
+  const overrides = (resume.styleOverrides ?? {}) as Record<
+    string,
+    { font?: string; fontSize?: string }
+  >;
+  const overrideFontIds = [
+    ...new Set(
+      Object.values(overrides)
+        .map((o) => o?.font)
+        .filter(Boolean) as string[],
+    ),
+  ];
+
+  // ── Build Google Fonts URL ────────────────────────────────
+  // Always load Instrument Serif (used for name/headings in all templates).
+  const googleFamilies: string[] = ["Instrument+Serif:ital@0;1"];
+
+  // Global font
+  if (fontDef.google && !fontDef.google.includes("Instrument")) {
     googleFamilies.push(fontDef.google);
   }
+
+  // Per-element override fonts
+  for (const fid of overrideFontIds) {
+    const def = ELEMENT_FONTS.find((f) => f.id === fid);
+    if (
+      def?.google &&
+      !googleFamilies.some((g) => g.startsWith(def.google!.split(":")[0]))
+    ) {
+      googleFamilies.push(def.google);
+    }
+  }
+
   const googleUrl = `https://fonts.googleapis.com/css2?family=${googleFamilies.join("&family=")}&display=swap`;
+
+  // ── Per-element override CSS ──────────────────────────────
+  // Generates CSS rules for each override so they apply in the PDF
+  // without needing React context (which doesn't exist in print mode).
+  // Instance IDs: "name", "jobTitle", "h:{sectionId}", "b:{sectionId}"
+  // Map to data attributes set on elements... but since templates use
+  // React inline styles, we inject the overrides via a global CSS approach:
+  // we generate a <style> block that targets the data-instance attribute.
+  const overrideStyles = Object.entries(overrides)
+    .map(([id, ov]) => {
+      if (!ov || (!ov.font && !ov.fontSize)) return "";
+      const rules: string[] = [];
+      if (ov.font) {
+        const def = ELEMENT_FONTS.find((f) => f.id === ov.font);
+        if (def) rules.push(`font-family: ${def.stack} !important`);
+      }
+      if (ov.fontSize) {
+        const pt = parseFloat(ov.fontSize);
+        if (!isNaN(pt))
+          rules.push(`font-size: ${(pt / 9.75).toFixed(3)}em !important`);
+      }
+      if ((ov as Record<string, unknown>).bold)
+        rules.push("font-weight: 700 !important");
+      if ((ov as Record<string, unknown>).italic)
+        rules.push("font-style: italic !important");
+      if ((ov as Record<string, unknown>).underline)
+        rules.push("text-decoration: underline !important");
+      if (!rules.length) return "";
+      return `[data-sid="${id}"] { ${rules.join("; ")} }`;
+    })
+    .filter(Boolean)
+    .join("\n");
 
   const Template = (() => {
     switch (resume.template) {
@@ -278,36 +344,29 @@ export default function PrintResume({
     }
   })();
 
+  // React 19 hoists <title>, <link>, and <style> to <head> automatically
+  // when rendered anywhere in the component tree — no <html>/<head>/<body> needed.
   return (
-    // <html lang="en">
-    //   <head>
-    //     <meta charSet="utf-8" />
-    //     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    //     <title>{getName(resume)}</title>
-    //     <link href={googleUrl} rel="stylesheet" />
-    //     <style>{`
-    //       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    //       html, body {
-    //         width: 210mm;
-    //         min-height: 297mm;
-    //         font-family: ${fontDef.stack};
-    //         background: #ffffff;
-    //         color: #0f0e0d;
-    //         -webkit-print-color-adjust: exact;
-    //         print-color-adjust: exact;
-    //       }
-    //       @page { size: A4; margin: 0; }
-    //       @media print { html, body { width: 210mm; min-height: 297mm; } }
-    //       .page {
-    //         width: 210mm;
-    //         min-height: 297mm;
-    //         /* Base font-size drives all em values in templates — same as ResumePreview */
-    //         font-size: ${basePx}px;
-    //       }
-    //     `}</style>
-    //   </head>
-    //   <body>
     <>
+      <title>{getName(resume)}</title>
+      <link href={googleUrl} rel="stylesheet" />
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+          background: #ffffff;
+          color: #0f0e0d;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        @page { size: A4; margin: 0; }
+        .page {
+          width: 210mm;
+          min-height: 297mm;
+          font-family: ${fontDef.stack};
+          font-size: ${basePx}px;
+        }
+        ${overrideStyles}
+      `}</style>
       <div className="page">{Template}</div>
       {!isPro && (
         <div
@@ -346,7 +405,5 @@ export default function PrintResume({
         </div>
       )}
     </>
-    //   </body>
-    // </html>
   );
 }

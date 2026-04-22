@@ -1,64 +1,26 @@
 import {
-  WRAP,
-  SERIF,
-  getName,
-  getJobTitle,
-  ContactLine,
-  renderSection,
+  getName, getJobTitle, ContactLine, renderSection,
 } from "./Shared";
+import { Styleable } from "@/components/builder/StyleContext";
 import type { TplProps } from "./types";
 
-export default function ClassicTemplate({
-  resume,
-  sections,
-  accent,
-}: TplProps) {
-  const h: React.CSSProperties = {
-    fontSize: "0.65rem",
-    fontWeight: 700,
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    color: "#0f0e0d",
-    borderBottom: "2px solid #0f0e0d",
-    paddingBottom: "0.2rem",
-    marginBottom: "0.6rem",
-  };
+export default function ClassicTemplate({ resume, sections, accent }: TplProps) {
+  const hClass = "text-[0.65em] font-bold tracking-[0.1em] uppercase text-rv-ink border-b-2 border-rv-ink pb-[0.2rem] mb-[0.6rem]";
   return (
-    <div style={WRAP}>
-      <div
-        style={{
-          textAlign: "center",
-          marginBottom: "1.25rem",
-          paddingBottom: "1rem",
-          borderBottom: "2px solid #0f0e0d",
-        }}
-      >
-        <h1
-          style={{
-            fontFamily: SERIF,
-            fontSize: "1.7rem",
-            color: "#0f0e0d",
-            letterSpacing: "-0.02em",
-            marginBottom: "0.2rem",
-          }}
-        >
+    <div className="bg-[#fdfcfa] p-8 min-h-full" style={{ "--accent": accent } as React.CSSProperties}>
+      <div className="text-center mb-5 pb-4 border-b-2 border-rv-ink">
+        <Styleable instanceId="name" tag="h1" className="font-serif text-[1.7em] text-rv-ink tracking-[-0.02em] mb-[0.2rem]">
           {getName(resume)}
-        </h1>
+        </Styleable>
         {getJobTitle(resume) && (
-          <p
-            style={{
-              fontSize: "0.67rem",
-              color: "#8a8478",
-              letterSpacing: "0.06em",
-            }}
-          >
+          <Styleable instanceId="jobTitle" tag="p" className="text-[0.67em] text-rv-muted tracking-[0.06em]">
             {getJobTitle(resume)}
-          </p>
+          </Styleable>
         )}
         <ContactLine info={resume.personalInfo} />
       </div>
       {sections.map((s) => (
-        <div key={s.id}>{renderSection(s, h, accent)}</div>
+        <div key={s.id}>{renderSection(s, hClass)}</div>
       ))}
     </div>
   );

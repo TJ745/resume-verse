@@ -53,6 +53,7 @@
   --color-rv-accent: var(--rv-accent);
   --color-rv-accent-warm: var(--rv-accent-warm);
   --color-rv-muted: var(--rv-muted);
+  --color-rv-body: var(--rv-body);
   --color-rv-border: var(--rv-border);
   --color-rv-white: var(--rv-white);
   --font-serif: var(--rv-font-serif);
@@ -95,6 +96,7 @@
 
   /* ── ResumeVerse brand tokens ── */
   --rv-ink: #0f0e0d;
+  --rv-body: #3a3835;
   --rv-paper: #f5f2eb;
   --rv-cream: #ede9df;
   --rv-accent: #c84b2f;
@@ -237,6 +239,21 @@
 .rv-bar.w60::after { width: 60%; }
 .rv-bar.w45::after { width: 45%; }
 
+
+/* ── Styleable element hover/selection (builder mode only) ── */
+.style-editable {
+  cursor: pointer;
+  border-radius: 2px;
+  outline: 1px dashed transparent;
+  outline-offset: 2px;
+  transition: outline 0.1s;
+}
+.style-editable:hover {
+  outline: 1px dashed rgba(200, 75, 47, 0.4);
+}
+.style-editable[data-selected] {
+  outline: 2px solid #c84b2f;
+}
 
 @page {
   size: A4;

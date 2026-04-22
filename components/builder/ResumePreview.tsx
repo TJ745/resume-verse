@@ -391,7 +391,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { reorderSections } from "@/actions/builder.actions";
+import { reorderSections, updateResumeMeta } from "@/actions/builder.actions";
 import {
   ModernTemplate, ClassicTemplate, MinimalTemplate, ExecutiveTemplate,
   CompactTemplate, CreativeTemplate, ElegantTemplate, TechnicalTemplate,
@@ -422,8 +422,12 @@ export default function ResumePreview({ resume, sections, onSectionsChange }: Pr
 
   // ── Drag state ────────────────────────────────────────
   const [overId,   setOverId]   = useState<string | null>(null);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => { if (saveTimer.current) clearTimeout(saveTimer.current); }, []);
+  const saveTimer      = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const styleSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (saveTimer.current)      clearTimeout(saveTimer.current);
+    if (styleSaveTimer.current) clearTimeout(styleSaveTimer.current);
+  }, []);
 
   const handleDragStart = useCallback((id: string, e: React.DragEvent) => {
     dragId.current = id;
@@ -489,15 +493,14 @@ export default function ResumePreview({ resume, sections, onSectionsChange }: Pr
     setToolbarRect(null);
   }
   function setOverride(id: InstanceId, patch: Partial<ElementStyle>) {
-    setOverrides((prev) => {
-      const current = prev[id] ?? {};
-      const next    = Object.keys(patch).length === 0 ? {} : { ...current, ...patch };
-      const updated = { ...prev, [id]: next };
-      import("@/actions/builder.actions").then(({ updateResumeMeta }) => {
-        updateResumeMeta(resume.id, { styleOverrides: updated });
-      });
-      return updated;
-    });
+    const current = overrides[id] ?? {};
+    const next    = Object.keys(patch).length === 0 ? {} : { ...current, ...patch };
+    const updated = { ...overrides, [id]: next };
+    setOverrides(updated);
+    if (styleSaveTimer.current) clearTimeout(styleSaveTimer.current);
+    styleSaveTimer.current = setTimeout(() => {
+      updateResumeMeta(resume.id, { styleOverrides: updated });
+    }, 600);
   }
 
   // Load Google Fonts for any fonts used in element overrides

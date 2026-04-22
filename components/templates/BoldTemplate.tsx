@@ -1,49 +1,28 @@
-import { WRAP, SERIF, getName, getJobTitle, renderSection } from "./Shared";
+import {
+  getName, getJobTitle, renderSection,
+} from "./Shared";
+import { Styleable } from "@/components/builder/StyleContext";
 import type { TplProps } from "./types";
 
 export default function BoldTemplate({ resume, sections, accent }: TplProps) {
-  const h: React.CSSProperties = {
-    fontSize: "0.62rem",
-    fontWeight: 800,
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    color: "#0f0e0d",
-    marginBottom: "0.55rem",
-    paddingBottom: "0.2rem",
-    borderBottom: "2px solid #0f0e0d",
-  };
+  const hClass = "text-[0.62em] font-extrabold tracking-[0.14em] uppercase text-rv-ink mb-[0.55rem] pb-[0.2rem] border-b-2 border-rv-ink";
   return (
-    <div style={{ ...WRAP, padding: "0" }}>
-      <div style={{ background: "#0f0e0d", padding: "1.75rem 2rem" }}>
-        <h1
-          style={{
-            fontFamily: SERIF,
-            fontSize: "2rem",
-            color: "#ffffff",
-            letterSpacing: "-0.01em",
-            marginBottom: "0.2rem",
-          }}
-        >
+    <div className="bg-[#fdfcfa] min-h-full" style={{ "--accent": accent } as React.CSSProperties}>
+      {/* Dark header band */}
+      <div className="bg-rv-ink py-7 px-8">
+        <Styleable instanceId="name" tag="h1" className="font-serif text-[2em] text-white tracking-[-0.01em] mb-[0.2rem]">
           {getName(resume)}
-        </h1>
+        </Styleable>
         {getJobTitle(resume) && (
-          <p
-            style={{
-              fontSize: "0.7rem",
-              color: accent,
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-            }}
-          >
+          <Styleable instanceId="jobTitle" tag="p" className="text-[0.7em] text-accent font-semibold tracking-[0.1em] uppercase">
             {getJobTitle(resume)}
-          </p>
+          </Styleable>
         )}
       </div>
-      <div style={{ height: 4, background: accent }} />
-      <div style={{ padding: "1.5rem 2rem" }}>
+      <div className="h-1 bg-accent" />
+      <div className="py-6 px-8">
         {sections.map((s) => (
-          <div key={s.id}>{renderSection(s, h, accent)}</div>
+          <div key={s.id}>{renderSection(s, hClass)}</div>
         ))}
       </div>
     </div>
