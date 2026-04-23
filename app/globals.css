@@ -255,16 +255,3 @@
   outline: 2px solid #c84b2f;
 }
 
-@page {
-  size: A4;
-  margin: 0;
-}
-
-@media print {
-  html, body {
-    width: 210mm;
-    min-height: 297mm;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-}

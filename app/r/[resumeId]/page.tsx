@@ -75,9 +75,11 @@ export default async function PublicResumePage({ params }: Props) {
   return (
     <div className="min-h-screen bg-[#f0ede8]">
       {/* ── Top bar ── */}
-      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-[#e8e4dc] px-6 py-3 flex items-center justify-between">
-        <p className="text-[0.8rem] text-[#8a8478] m-0">
-          <strong className="text-[#0f0e0d] font-semibold">{name}</strong>
+      <div className="sticky h-12 top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-[#e8e4dc] px-6 py-3 flex items-center justify-between">
+        <p className="text-[0.8rem] text-[#8a8478]">
+          <strong className="text-[#0f0e0d] font-semibold">
+            {name}&apos;s
+          </strong>
           <span className="mx-1.5 opacity-40">·</span>
           Resume
         </p>
@@ -105,7 +107,7 @@ export default async function PublicResumePage({ params }: Props) {
       </div>
 
       {/* ── Footer CTA ── */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e8e4dc] px-6 py-3 flex items-center justify-between z-10">
+      <div className="fixed h-12 bottom-0 left-0 right-0 bg-white border-t border-[#e8e4dc] px-6 py-3 flex items-center justify-between z-10">
         <p className="text-[0.75rem] text-[#8a8478]">
           Create your own professional resume — free
         </p>

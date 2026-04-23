@@ -167,7 +167,7 @@ export default function PrintResume({
       <title>{getName(resume)}</title>
       <link href={googleUrl} rel="stylesheet" />
       <style>{`
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box;  }
         body {
           background: #ffffff;
           color: #0f0e0d;
