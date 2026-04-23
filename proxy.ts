@@ -9,7 +9,7 @@ const AUTH_ROUTES = [
   "/reset-password",
 ];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isProtected = PROTECTED.some((path) => pathname.startsWith(path));

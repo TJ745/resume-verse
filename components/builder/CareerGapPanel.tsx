@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { ResumeData, ResumeSection, ExperienceItem } from "@/types/resume";
 
 interface GapExplanation {
@@ -25,7 +25,6 @@ interface Props {
 export default function CareerGapPanel({
   open,
   onClose,
-  resume: _resume,
   sections,
 }: Props) {
   const [gaps, setGaps] = useState<GapResult[]>([]);
@@ -35,7 +34,10 @@ export default function CareerGapPanel({
   const [expanded, setExpanded] = useState<Set<number>>(new Set([0]));
 
   const expSection = sections.find((s) => s.type === "experience");
-  const expItems = (expSection?.content as ExperienceItem[] | undefined) ?? [];
+  const expItems = useMemo(
+    () => (expSection?.content as ExperienceItem[] | undefined) ?? [],
+    [expSection],
+  );
 
   useEffect(() => {
     if (open) {
@@ -95,7 +97,7 @@ export default function CareerGapPanel({
   function toggle(i: number) {
     setExpanded((prev) => {
       const n = new Set(prev);
-      n.has(i) ? n.delete(i) : n.add(i);
+      if (n.has(i)) n.delete(i); else n.add(i);
       return n;
     });
   }
@@ -106,10 +108,10 @@ export default function CareerGapPanel({
   return (
     <>
       <div
-        className="fixed inset-0 z-[90] bg-[rgba(15,14,13,0.35)]"
+        className="fixed inset-0 z-90 bg-[rgba(15,14,13,0.35)]"
         onClick={onClose}
       />
-      <div className="fixed top-14 right-0 bottom-0 w-[440px] z-[91] bg-rv-paper border-l border-rv-border flex flex-col shadow-[-8px_0_32px_rgba(15,14,13,0.1)]">
+      <div className="fixed top-14 right-0 bottom-0 w-110 z-91 bg-rv-paper border-l border-rv-border flex flex-col shadow-[-8px_0_32px_rgba(15,14,13,0.1)]">
         <div className="flex items-center justify-between px-5 py-3 border-b border-rv-border shrink-0">
           <div className="flex items-center gap-2">
             <GIcon />

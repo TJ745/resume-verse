@@ -36,7 +36,7 @@ function buildText(resume: ResumeData, sections: ResumeSection[]): string {
     )
       lines.push((c as { text: string }).text ?? "");
     else if (Array.isArray(c))
-      for (const item of c as Record<string, unknown>[]) {
+      for (const item of c as unknown as Record<string, unknown>[]) {
         const p: string[] = [];
         if (item.role) p.push(String(item.role));
         if (item.company) p.push(String(item.company));
@@ -207,10 +207,10 @@ export default function CoverLetterPanel({
   return (
     <>
       <div
-        className="fixed inset-0 z-[90] bg-[rgba(15,14,13,0.35)]"
+        className="fixed inset-0 z-90 bg-[rgba(15,14,13,0.35)]"
         onClick={onClose}
       />
-      <div className="fixed top-14 right-0 bottom-0 w-[440px] z-[91] bg-rv-paper border-l border-rv-border flex flex-col shadow-[-8px_0_32px_rgba(15,14,13,0.1)]">
+      <div className="fixed top-14 right-0 bottom-0 w-110 z-91 bg-rv-paper border-l border-rv-border flex flex-col shadow-[-8px_0_32px_rgba(15,14,13,0.1)]">
         <div className="flex items-center justify-between px-5 py-3 border-b border-rv-border shrink-0">
           <div className="flex items-center gap-2">
             <LIcon />
@@ -359,7 +359,7 @@ export default function CoverLetterPanel({
                   <AB onClick={handlePdf}>↓ PDF</AB>
                 </div>
               </div>
-              <div className="bg-rv-white border border-rv-border rounded-sm p-4 text-[0.75rem] leading-[1.8] text-rv-ink whitespace-pre-wrap min-h-[200px]">
+              <div className="bg-rv-white border border-rv-border rounded-sm p-4 text-[0.75rem] leading-[1.8] text-rv-ink whitespace-pre-wrap min-h-50">
                 {letter}
                 {streaming && (
                   <span className="inline-block w-1.5 h-3 bg-rv-accent ml-0.5 align-middle animate-pulse" />

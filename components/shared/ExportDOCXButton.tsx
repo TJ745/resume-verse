@@ -3,7 +3,6 @@
 import { useState } from "react";
 import {
   COLOR_SCHEMES,
-  RESUME_FONTS,
   FONT_SIZES,
   DEFAULT_FONT,
   DEFAULT_FONT_SIZE,
@@ -86,8 +85,6 @@ export default function ExportDOCXButton({
       // Font — map our font IDs to their best Word equivalents
       const fontId = font ?? resume.font ?? DEFAULT_FONT;
       const sizeId = fontSize ?? resume.fontSize ?? DEFAULT_FONT_SIZE;
-      const fontDef =
-        RESUME_FONTS.find((f) => f.id === fontId) ?? RESUME_FONTS[0];
       const sizeDef = FONT_SIZES.find((s) => s.id === sizeId) ?? FONT_SIZES[2];
 
       // Word-compatible font name (Google Fonts don't work in DOCX — use close equivalents)
@@ -141,7 +138,7 @@ export default function ExportDOCXButton({
         });
       }
 
-      function bulletPara(text: string, color = accentHex) {
+      function bulletPara(text: string) {
         return new Paragraph({
           numbering: { reference: "resume-bullets", level: 0 },
           children: [body(text)],

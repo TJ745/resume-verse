@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import { saveSection, addSection } from "@/actions/builder.actions";
 import type { ResumeSection, SectionType, SectionContent } from "@/types/resume";
 
@@ -9,7 +9,7 @@ export function useSectionSave(
 ) {
   // Always hold the latest sections in a ref so async callbacks never go stale
   const sectionsRef = useRef<ResumeSection[]>(sections);
-  sectionsRef.current = sections;
+  useEffect(() => { sectionsRef.current = sections; });
 
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 

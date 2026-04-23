@@ -42,7 +42,11 @@ export async function POST(request: NextRequest) {
         const subscription =
           await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0]?.price.id ?? null;
-        const periodEnd = new Date(subscription.current_period_end * 1000);
+        // current_period_end moved to items[0] in Stripe API 2025-04-30
+        const rawPeriodEnd =
+          (subscription.items.data[0] as unknown as Record<string, unknown>)?.current_period_end ??
+          (subscription as unknown as Record<string, unknown>)?.current_period_end;
+        const periodEnd = new Date((rawPeriodEnd as number) * 1000);
 
         await prisma.user.update({
           where: { id: userId },
@@ -60,15 +64,21 @@ export async function POST(request: NextRequest) {
       // ── Subscription renewed → refresh period end ─────────
       case "invoice.paid": {
         const invoice = event.data.object as Stripe.Invoice;
+        // Invoice.subscription moved in Stripe API 2025-04-30 — cast for compat
+        const inv = invoice as unknown as Record<string, unknown>;
         const subscriptionId =
-          typeof invoice.subscription === "string"
-            ? invoice.subscription
-            : invoice.subscription?.id;
+          typeof inv.subscription === "string"
+            ? inv.subscription
+            : (inv.subscription as { id?: string } | null)?.id;
         if (!subscriptionId) break;
 
         const subscription =
           await stripe.subscriptions.retrieve(subscriptionId);
-        const periodEnd = new Date(subscription.current_period_end * 1000);
+        // current_period_end moved to items[0] in Stripe API 2025-04-30
+        const rawPeriodEnd2 =
+          (subscription.items.data[0] as unknown as Record<string, unknown>)?.current_period_end ??
+          (subscription as unknown as Record<string, unknown>)?.current_period_end;
+        const periodEnd = new Date((rawPeriodEnd2 as number) * 1000);
 
         await prisma.user.updateMany({
           where: { stripeSubscriptionId: subscriptionId },
@@ -83,10 +93,12 @@ export async function POST(request: NextRequest) {
       // ── Payment failed → keep Pro but flag expiry ─────────
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
+        // Invoice.subscription moved in Stripe API 2025-04-30 — cast for compat
+        const inv2 = invoice as unknown as Record<string, unknown>;
         const subscriptionId =
-          typeof invoice.subscription === "string"
-            ? invoice.subscription
-            : invoice.subscription?.id;
+          typeof inv2.subscription === "string"
+            ? inv2.subscription
+            : (inv2.subscription as { id?: string } | null)?.id;
         if (!subscriptionId) break;
 
         // Don't downgrade immediately — Stripe will retry.
@@ -115,7 +127,11 @@ export async function POST(request: NextRequest) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const isActive = ["active", "trialing"].includes(subscription.status);
-        const periodEnd = new Date(subscription.current_period_end * 1000);
+        // current_period_end moved to items[0] in Stripe API 2025-04-30
+        const rawPeriodEnd3 =
+          (subscription.items.data[0] as unknown as Record<string, unknown>)?.current_period_end ??
+          (subscription as unknown as Record<string, unknown>)?.current_period_end;
+        const periodEnd = new Date((rawPeriodEnd3 as number) * 1000);
         const priceId = subscription.items.data[0]?.price.id ?? null;
 
         await prisma.user.updateMany({

@@ -18,7 +18,7 @@ function computeCompletion(resume: ResumeData, sections: ResumeSection[]) {
 
   const hasContent = (s: ResumeSection | undefined): boolean => {
     if (!s) return false;
-    const c = s.content as Record<string, unknown>;
+    const c = s.content as unknown as Record<string, unknown>;
     if (Array.isArray(c)) return c.length > 0;
     if (c?.text && typeof c.text === "string") return c.text.trim().length > 20;
     if (c?.categories && Array.isArray(c.categories)) {
@@ -32,7 +32,7 @@ function computeCompletion(resume: ResumeData, sections: ResumeSection[]) {
   const expSec = sec("experience");
   const hasBullets = (() => {
     if (!expSec) return false;
-    const c = expSec.content as Record<string, unknown>;
+    const c = expSec.content as unknown as Record<string, unknown>;
     const items = Array.isArray(c) ? c : [];
     return items.some((job: unknown) => {
       const bullets =

@@ -52,7 +52,7 @@ function buildText(resume: ResumeData, sections: ResumeSection[]): string {
     )
       lines.push((c as { text: string }).text ?? "");
     else if (Array.isArray(c))
-      for (const item of c as Record<string, unknown>[]) {
+      for (const item of c as unknown as Record<string, unknown>[]) {
         const p: string[] = [];
         if (item.role) p.push(String(item.role));
         if (item.company) p.push(String(item.company));
@@ -208,10 +208,10 @@ export default function JDMatchPanel({
   return (
     <>
       <div
-        className="fixed inset-0 z-[90] bg-[rgba(15,14,13,0.35)]"
+        className="fixed inset-0 z-90 bg-[rgba(15,14,13,0.35)]"
         onClick={onClose}
       />
-      <div className="fixed top-14 right-0 bottom-0 w-[460px] z-[91] bg-rv-paper border-l border-rv-border flex flex-col shadow-[-8px_0_32px_rgba(15,14,13,0.1)]">
+      <div className="fixed top-14 right-0 bottom-0 w-110 z-91 bg-rv-paper border-l border-rv-border flex flex-col shadow-[-8px_0_32px_rgba(15,14,13,0.1)]">
         <div className="flex items-center justify-between px-5 py-3 border-b border-rv-border shrink-0">
           <div className="flex items-center gap-2">
             <TIcon />
@@ -270,7 +270,7 @@ export default function JDMatchPanel({
           {result && (
             <div>
               <div
-                className="rounded-[4px] p-3.5 mb-4 flex items-center gap-4"
+                className="rounded-lg p-3.5 mb-4 flex items-center gap-4"
                 style={{ background: st(result.matchScore) }}
               >
                 <div className="text-center shrink-0">

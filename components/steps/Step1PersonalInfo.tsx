@@ -219,8 +219,8 @@ export default function Step1PersonalInfo({
     const newAccent =
       COLOR_SCHEMES.find((s) => s.id === colorScheme)?.accent ?? "#c84b2f";
 
-    setPhotoStatus("processing");
     (async () => {
+      setPhotoStatus("processing");
       try {
         const img = await loadImage(rawUrl);
         const bounds = findSubjectBounds(img);
@@ -233,7 +233,6 @@ export default function Step1PersonalInfo({
         setPhotoStatus("idle");
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colorScheme]);
 
   function set<K extends keyof PersonalInfo>(key: K, value: PersonalInfo[K]) {

@@ -59,7 +59,7 @@ export default function DashboardTopbar({
     <header className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-8 bg-rv-paper border-b border-rv-border">
       <Link
         href="/dashboard"
-        className="font-serif text-xl no-underline text-rv-ink tracking-[-0.02em]"
+        className="font-serif text-4xl no-underline text-rv-ink tracking-[-0.02em]"
       >
         Resume<span className="text-rv-accent italic">Verse</span>
       </Link>

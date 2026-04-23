@@ -17,7 +17,7 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-16 py-5 bg-rv-paper border-b border-rv-border">
       <Link
         href="/"
-        className="font-serif text-2xl no-underline text-rv-ink tracking-[-0.02em]"
+        className="font-serif text-4xl no-underline text-rv-ink tracking-[-0.02em]"
       >
         Resume<span className="text-rv-accent italic">Verse</span>
       </Link>
@@ -27,7 +27,7 @@ export default function Navbar() {
           <li key={item.href}>
             <Link
               href={item.href}
-              className="text-sm font-medium no-underline text-rv-muted hover:text-rv-ink transition-colors duration-150"
+              className="text-base font-medium no-underline text-rv-muted hover:text-rv-ink transition-colors duration-150"
             >
               {item.label}
             </Link>
@@ -37,7 +37,7 @@ export default function Navbar() {
       <div className="flex items-center gap-4">
         <Link
           href="/login"
-          className="hidden md:inline-block text-sm font-medium no-underline px-5 py-2.5 bg-rv-accent text-rv-paper rounded-sm hover:bg-rv-accent hover:text-white transition-colors duration-150"
+          className="hidden md:inline-block text-sm font-medium no-underline px-5 py-2.5 border hover:border-rv-accent hover:text-rv-accent border-rv-ink text-rv-ink rounded-sm transition-colors duration-150"
         >
           Login
         </Link>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import type { ResumeData, ResumeSection } from "@/types/resume";
 
 interface ATSResult {
@@ -42,7 +42,7 @@ function buildResumeText(
     ) {
       lines.push((c as { text: string }).text ?? "");
     } else if (Array.isArray(c)) {
-      for (const item of c as Record<string, unknown>[]) {
+      for (const item of c as unknown as Record<string, unknown>[]) {
         const parts: string[] = [];
         if (item.role) parts.push(String(item.role));
         if (item.company) parts.push(String(item.company));
@@ -142,10 +142,10 @@ export default function ATSPanel({ open, onClose, resume, sections }: Props) {
   return (
     <>
       <div
-        className="fixed inset-0 z-[90] bg-[rgba(15,14,13,0.35)]"
+        className="fixed inset-0 z-90 bg-[rgba(15,14,13,0.35)]"
         onClick={onClose}
       />
-      <div className="fixed top-14 right-0 bottom-0 w-[400px] z-[91] bg-rv-paper border-l border-rv-border flex flex-col shadow-[-8px_0_32px_rgba(15,14,13,0.1)]">
+      <div className="fixed top-14 right-0 bottom-0 w-100 z-91 bg-rv-paper border-l border-rv-border flex flex-col shadow-[-8px_0_32px_rgba(15,14,13,0.1)]">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-rv-border shrink-0">
           <div className="flex items-center gap-2">
@@ -212,7 +212,7 @@ export default function ATSPanel({ open, onClose, resume, sections }: Props) {
           {result && (
             <div>
               <div
-                className="rounded-[4px] p-4 mb-4 text-center"
+                className="rounded-lg p-4 mb-4 text-center"
                 style={{ background: scoreTrack(result.score) }}
               >
                 <div
@@ -222,12 +222,12 @@ export default function ATSPanel({ open, onClose, resume, sections }: Props) {
                   {result.score}
                 </div>
                 <div
-                  className="text-[0.7rem] font-bold tracking-[0.1em] uppercase mt-0.5"
+                  className="text-[0.7rem] font-bold tracking-widest uppercase mt-0.5"
                   style={{ color: scoreColor(result.score) }}
                 >
                   {result.scoreLabel}
                 </div>
-                <div className="h-1.5 bg-[rgba(0,0,0,0.08)] rounded-full mx-auto mt-2.5 max-w-[200px]">
+                <div className="h-1.5 bg-[rgba(0,0,0,0.08)] rounded-full mx-auto mt-2.5 max-w-50">
                   <div
                     className="h-full rounded-full transition-[width] duration-500"
                     style={{

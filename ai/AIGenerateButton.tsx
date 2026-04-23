@@ -43,10 +43,6 @@ export default function AIGenerateButton({
     onDone: (text) => setResult(text),
   });
 
-  useEffect(() => {
-    setCtx((prev) => ({ ...prefillContext, ...prev }));
-  }, []); // eslint-disable-line
-
   const updatePos = useCallback(() => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
@@ -114,13 +110,13 @@ export default function AIGenerateButton({
       {open && (
         <div
           ref={popoverRef}
-          className="fixed z-[200] w-[320px] bg-rv-white border border-rv-border rounded-sm shadow-[0_12px_40px_rgba(15,14,13,0.18)] p-4"
+          className="fixed z-200 w-[320px] bg-rv-white border border-rv-border rounded-sm shadow-[0_12px_40px_rgba(15,14,13,0.18)] p-4"
           style={{ top: pos.top, left: pos.left }}
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-1.5">
               <Sparkle color="var(--rv-accent)" />
-              <span className="text-xs font-semibold uppercase tracking-[0.1em] text-rv-accent">
+              <span className="text-xs font-semibold uppercase tracking-widest text-rv-accent">
                 AI Generate
               </span>
             </div>
@@ -172,7 +168,7 @@ export default function AIGenerateButton({
           )}
 
           {displayText && (
-            <div className="mb-3 text-xs leading-relaxed bg-rv-cream border border-rv-border rounded-sm px-3 py-2.5 text-rv-ink whitespace-pre-wrap max-h-[160px] overflow-y-auto">
+            <div className="mb-3 text-xs leading-relaxed bg-rv-cream border border-rv-border rounded-sm px-3 py-2.5 text-rv-ink whitespace-pre-wrap max-h-40 overflow-y-auto">
               {displayText}
               {streaming && (
                 <span className="inline-block w-1.5 h-3 bg-rv-accent ml-0.5 align-middle animate-pulse" />

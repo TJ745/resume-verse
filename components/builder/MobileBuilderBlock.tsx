@@ -16,7 +16,7 @@ export default function MobileBuilderBlock() {
   if (!isMobile) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-rv-paper flex flex-col items-center justify-center p-8 text-center">
+    <div className="fixed inset-0 z-9999 bg-rv-paper flex flex-col items-center justify-center p-8 text-center">
       <div className="w-16 h-16 rounded-full bg-[rgba(200,75,47,0.08)] flex items-center justify-center mb-6">
         <svg
           viewBox="0 0 24 24"
@@ -41,7 +41,7 @@ export default function MobileBuilderBlock() {
         Resume builder needs
         <br />a larger screen
       </h2>
-      <p className="text-[0.875rem] text-rv-muted leading-relaxed max-w-[300px] mb-8">
+      <p className="text-[0.875rem] text-rv-muted leading-relaxed max-w-75 mb-8">
         The builder is designed for desktop. Please open ResumeVerse on a laptop
         or desktop to build and edit your resume.
       </p>

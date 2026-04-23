@@ -216,18 +216,20 @@ export default function GrammarPanel({
           ),
         }));
       else if (["projects", "volunteer", "awards"].includes(section.type))
-        newContent = (section.content as Array<Record<string, unknown>>).map(
-          (item) =>
-            typeof item.description === "string" &&
-            item.description.includes(issue.original)
-              ? {
-                  ...item,
-                  description: item.description.replace(
-                    issue.original,
-                    issue.fixed,
-                  ),
-                }
-              : item,
+        newContent = (
+          (section.content as unknown as Array<Record<string, unknown>>).map(
+            (item) =>
+              typeof item.description === "string" &&
+              item.description.includes(issue.original)
+                ? {
+                    ...item,
+                    description: item.description.replace(
+                      issue.original,
+                      issue.fixed,
+                    ),
+                  }
+                : item,
+          ) as unknown as typeof section.content
         );
       onSectionsChange(
         sections.map((s) =>
@@ -251,10 +253,10 @@ export default function GrammarPanel({
   return (
     <>
       <div
-        className="fixed inset-0 z-[90] bg-[rgba(15,14,13,0.35)]"
+        className="fixed inset-0 z-90 bg-[rgba(15,14,13,0.35)]"
         onClick={onClose}
       />
-      <div className="fixed top-14 right-0 bottom-0 w-[440px] z-[91] bg-rv-paper border-l border-rv-border flex flex-col shadow-[-8px_0_32px_rgba(15,14,13,0.1)]">
+      <div className="fixed top-14 right-0 bottom-0 w-110 z-91 bg-rv-paper border-l border-rv-border flex flex-col shadow-[-8px_0_32px_rgba(15,14,13,0.1)]">
         <div className="flex items-center justify-between px-5 py-3 border-b border-rv-border shrink-0">
           <div className="flex items-center gap-2">
             <GIcon />
